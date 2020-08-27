@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,8 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Staking.cs" />
+    <Compile Include="GlobalRecordMethod.cs" />
+    <Compile Include="StakingReocrd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="struct.cs" />
+    <Compile Include="UserRecordMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
