@@ -45,7 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FLM.cs" />
     <Compile Include="FlmMethod.cs" />
     <Compile Include="GlobalRecordMethod.cs" />
     <Compile Include="ShareMethod.cs" />
