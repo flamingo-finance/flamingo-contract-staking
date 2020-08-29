@@ -19,7 +19,11 @@ namespace flamingo_contract_staking
 
         private static BigInteger StartHeight = 10000;
         public static object Main(string method, object[] args)
-        {            
+        {
+            if (ExecutionEngine.EntryScriptHash != ExecutionEngine.ExecutingScriptHash) 
+            {
+                return false;
+            }
             return false;
         }
 
@@ -35,9 +39,9 @@ namespace flamingo_contract_staking
 
         public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId, byte[] keyHash) 
         {
-            Runtime.CheckWitness(fromAddress);
-            BigInteger currentHeight = Blockchain.GetHeight();
             //提现检查
+            if (!Runtime.CheckWitness(fromAddress)) return false;
+            BigInteger currentHeight = Blockchain.GetHeight();
             StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(keyHash).Deserialize();
             if (stakingReocrd.amount < amount || !(stakingReocrd.fromAddress.Equals(fromAddress)) || !(stakingReocrd.assetId.Equals(assetId)))
             {
@@ -45,6 +49,7 @@ namespace flamingo_contract_staking
             }
             else             
             {
+                //
                 BigInteger remainAmount = (stakingReocrd.amount - amount);
                 UpdateStackRecord( -remainAmount, assetId);
                 //计算需要扣除的收益
@@ -57,46 +62,18 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        private static void UpdateStackRecord(BigInteger amount, byte[] assetId) 
+        public static bool ClaimFLM(byte[] fromAddress, byte[] keyHash) 
         {
-            //清算历史每stack收益率
-            UpdateHistoryUintStackProfitSum(assetId);
-            //更新当前收益率记账高度    
-            UpdateCurrentRecordHeight(assetId);
-            //计算之后每stack收益率
-            var currentTotalStakingAmount = SaveTotalAmountIncrease(assetId, amount);
-            var currentShareAmount = GetCurrentShareAmount();
-            //TODO: 做正负号检查
-            var currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
-            //更新当前每个stack收益率
-            UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);
+            if (!Runtime.CheckWitness(fromAddress)) return false;
+            StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(keyHash).Deserialize();
+            if (stakingReocrd.fromAddress.Equals(fromAddress))
+            {
+                return false;
+            }
+            var profitAmount = stakingReocrd.Profit;
+            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, stakingReocrd.height, 0, keyHash);
+            //FLM转账
+            return true;
         }
-      
-        public static BigInteger GetCurrentIndex(byte[] assetId)
-        {
-            return Storage.Get("Index".AsByteArray().Concat(assetId)).ToBigInteger();
-        }
-
-        private static BigInteger GetCurrentShareAmount() 
-        {
-            //获取最新高度块上的分红总量
-            return 1;
-        }
-
-        private static BigInteger GetCurrentTotalAmount(byte[] assetId) 
-        {
-            return Storage.Get(_currentTotalAmount.Concat(assetId)).ToBigInteger();
-        }
-
-        private static BigInteger SaveTotalAmountIncrease(byte[] assetId, BigInteger amount) 
-        {
-            var totalAmount = GetCurrentTotalAmount(assetId) + amount;
-            Storage.Put(_currentTotalAmount.Concat(assetId), totalAmount);
-            return totalAmount;
-        }
-
-
-
-
     }
 }

@@ -24,6 +24,21 @@ namespace flamingo_contract_staking
             }
         }
 
+        private static void UpdateStackRecord(BigInteger amount, byte[] assetId)
+        {
+            //清算历史每stack收益率
+            UpdateHistoryUintStackProfitSum(assetId);
+            //更新当前收益率记账高度    
+            UpdateCurrentRecordHeight(assetId);
+            //计算之后每stack收益率
+            var currentTotalStakingAmount = SaveTotalAmountIncrease(assetId, amount);
+            var currentShareAmount = GetCurrentShareAmount(assetId);
+            //TODO: 做正负号检查
+            var currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
+            //更新当前每个stack收益率
+            UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);
+        }
+
         private static bool UpdateHistoryUintStackProfitSum(byte[] assetId)
         {
             BigInteger currentHeight = Blockchain.GetHeight();
@@ -75,6 +90,18 @@ namespace flamingo_contract_staking
             byte[] _UintStackProfitKey = _currentUintStackProfitPrefix.Concat(assetId);
             Storage.Put(_UintStackProfitKey, profit);
             return true;
+        }
+
+        private static BigInteger GetCurrentTotalAmount(byte[] assetId)
+        {
+            return Storage.Get(_currentTotalAmount.Concat(assetId)).ToBigInteger();
+        }
+
+        private static BigInteger SaveTotalAmountIncrease(byte[] assetId, BigInteger amount)
+        {
+            var totalAmount = GetCurrentTotalAmount(assetId) + amount;
+            Storage.Put(_currentTotalAmount.Concat(assetId), totalAmount);
+            return totalAmount;
         }
     }
 }
