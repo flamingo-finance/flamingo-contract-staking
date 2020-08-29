@@ -62,7 +62,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        public static bool ClaimFLM(byte[] fromAddress, byte[] keyHash) 
+        public static bool ClaimFLM(byte[] fromAddress, byte[] keyHash, byte[] callingScript) 
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
             StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(keyHash).Deserialize();
@@ -72,7 +72,10 @@ namespace flamingo_contract_staking
             }
             var profitAmount = stakingReocrd.Profit;
             SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, stakingReocrd.height, 0, keyHash);
-            //FLM转账
+            if (!MintFLM(fromAddress, profitAmount, callingScript))             
+            {
+                return false;
+            }
             return true;
         }
     }
