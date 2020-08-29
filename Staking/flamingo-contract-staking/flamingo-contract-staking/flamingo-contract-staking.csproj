@@ -46,7 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FLM.cs" />
+    <Compile Include="FlmMethod.cs" />
     <Compile Include="GlobalRecordMethod.cs" />
+    <Compile Include="ShareMethod.cs" />
     <Compile Include="StakingReocrd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="struct.cs" />
