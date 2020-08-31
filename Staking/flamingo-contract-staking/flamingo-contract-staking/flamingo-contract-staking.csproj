@@ -45,9 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetWhiteListMethod.cs" />
     <Compile Include="FlmMethod.cs" />
     <Compile Include="GlobalRecordMethod.cs" />
-    <Compile Include="ShareMethod.cs" />
+    <Compile Include="OwnerMethod.cs" />
+    <Compile Include="ShareManagementMethod.cs" />
     <Compile Include="StakingReocrd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="struct.cs" />

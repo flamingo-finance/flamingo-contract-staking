@@ -100,6 +100,10 @@ namespace flamingo_contract_staking
         private static BigInteger SaveTotalAmountIncrease(byte[] assetId, BigInteger amount)
         {
             var totalAmount = GetCurrentTotalAmount(assetId) + amount;
+            if (totalAmount < 0) 
+            {
+                throw new Exception();
+            }
             Storage.Put(_currentTotalAmount.Concat(assetId), totalAmount);
             return totalAmount;
         }

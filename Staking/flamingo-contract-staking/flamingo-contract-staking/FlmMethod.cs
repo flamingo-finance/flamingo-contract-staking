@@ -22,7 +22,7 @@ namespace flamingo_contract_staking
             return FlmMain("mint", Params);
         }
 
-
+        //FLM合约
         [Appcall("b9d7ea3062e6aeeb3e8ad9548220c4ba1361d263")]
         public static extern bool FlmMain(string operation, params object[] args);
     }

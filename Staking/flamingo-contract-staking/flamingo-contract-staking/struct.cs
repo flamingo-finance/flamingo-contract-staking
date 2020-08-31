@@ -13,11 +13,5 @@ namespace flamingo_contract_staking
             public byte[] assetId;
             public BigInteger Profit;
         }
-
-        struct indexRecord
-        {
-            public BigInteger Height;
-            public BigInteger totalAmount;
-        }
     }
 }

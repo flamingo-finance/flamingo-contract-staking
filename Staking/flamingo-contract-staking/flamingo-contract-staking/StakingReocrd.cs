@@ -16,21 +16,25 @@ namespace flamingo_contract_staking
 
         private static byte[] _historyUintStackProfitSum = new byte[] { 0x02, 0x01 };
 
-
         private static BigInteger StartHeight = 10000;
+        delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
-            if (ExecutionEngine.EntryScriptHash != ExecutionEngine.ExecutingScriptHash) 
-            {
-                return false;
-            }
             return false;
         }
 
         public static byte[] Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
+            if (!IsInWhiteList(assetId) || assetId.Length != 20) return new byte[] { 0x00 }; //throw exception when release
+            DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
             byte[] txHash = ((Transaction)ExecutionEngine.ScriptContainer).Hash;
-            //TODO: Nep5转账操作
+            object[] Params = new object[]
+            {
+                fromAddress,
+                ExecutionEngine.ExecutingScriptHash,
+                amount
+            };
+            if (!(bool)nep5Contract("transfer", Params)) return new byte[] { 0x01 }; //throw exception when release
             BigInteger currentHeight = Blockchain.GetHeight();
             SaveUserStaking(fromAddress, amount, assetId, currentHeight, 0, txHash);
             UpdateStackRecord(amount, assetId);
@@ -49,7 +53,6 @@ namespace flamingo_contract_staking
             }
             else             
             {
-                //
                 BigInteger remainAmount = (stakingReocrd.amount - amount);
                 UpdateStackRecord( -remainAmount, assetId);
                 //计算需要扣除的收益
@@ -59,6 +62,14 @@ namespace flamingo_contract_staking
                 SaveUserStaking(fromAddress, remainAmount, assetId, currentHeight, SumProfit - MinusProfit, keyHash);
             }
             //Nep5转账
+            DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
+            object[] Params = new object[]
+            {                
+                ExecutionEngine.ExecutingScriptHash,
+                fromAddress,
+                amount
+            };
+            if (!(bool)nep5Contract("transfer", Params)) return false; //throw exception when release
             return true;
         }
 
