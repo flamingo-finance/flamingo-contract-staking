@@ -24,14 +24,14 @@ namespace flamingo_contract_staking
             }
         }
 
-        private static void UpdateStackRecord(BigInteger amount, byte[] assetId)
+        private static void UpdateStackRecord(byte[] assetId)
         {
             //清算历史每stack收益率
             UpdateHistoryUintStackProfitSum(assetId);
             //更新当前收益率记账高度    
             UpdateCurrentRecordHeight(assetId);
             //计算之后每stack收益率
-            var currentTotalStakingAmount = SaveTotalAmountIncrease(assetId, amount);
+            var currentTotalStakingAmount = GetCurrentTotalAmount(assetId);
             var currentShareAmount = GetCurrentShareAmount(assetId);
             //TODO: 做正负号检查
             var currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
@@ -94,17 +94,9 @@ namespace flamingo_contract_staking
 
         private static BigInteger GetCurrentTotalAmount(byte[] assetId)
         {
-            return Storage.Get(_currentTotalAmount.Concat(assetId)).ToBigInteger();
-        }
-
-        private static BigInteger SaveTotalAmountIncrease(byte[] assetId, BigInteger amount)
-        {
-            var totalAmount = GetCurrentTotalAmount(assetId) + amount;
-            if (totalAmount < 0) 
-            {
-                throw new Exception();
-            }
-            Storage.Put(_currentTotalAmount.Concat(assetId), totalAmount);
+            //TODO, 通过balanceOf查询余额
+            var Params = new object[] { ExecutionEngine.ExecutingScriptHash };
+            BigInteger totalAmount = (BigInteger)((DyncCall)assetId.ToDelegate())("balanceOf", Params);
             return totalAmount;
         }
     }

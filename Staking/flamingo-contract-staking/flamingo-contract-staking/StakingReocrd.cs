@@ -23,71 +23,89 @@ namespace flamingo_contract_staking
             return false;
         }
 
-        public static byte[] Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
+        public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
-            if (!IsInWhiteList(assetId) || assetId.Length != 20) return new byte[] { 0x00 }; //throw exception when release
-            DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
-            byte[] txHash = ((Transaction)ExecutionEngine.ScriptContainer).Hash;
+            if (!IsInWhiteList(assetId) || assetId.Length != 20) return false; //throw exception when release
             object[] Params = new object[]
             {
                 fromAddress,
                 ExecutionEngine.ExecutingScriptHash,
                 amount
             };
-            if (!(bool)nep5Contract("transfer", Params)) return new byte[] { 0x01 }; //throw exception when release
+            if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
             BigInteger currentHeight = Blockchain.GetHeight();
-            SaveUserStaking(fromAddress, amount, assetId, currentHeight, 0, txHash);
-            UpdateStackRecord(amount, assetId);
-            return txHash;
+            byte[] key = assetId.Concat(fromAddress);
+            var result = Storage.Get(key);
+            BigInteger currentProfit = 0;
+            if (result.Length != 0)
+            {
+                StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
+                currentProfit = SettleProfit(stakingRecord.height, stakingRecord.amount, assetId) + stakingRecord.Profit;
+                amount += stakingRecord.amount;
+            }
+            SaveUserStaking(fromAddress, amount, assetId, currentHeight, currentProfit, key);
+            UpdateStackRecord(assetId);
+            return true;
         }
 
-        public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId, byte[] keyHash) 
+        public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
             BigInteger currentHeight = Blockchain.GetHeight();
-            StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(keyHash).Deserialize();
-            if (stakingReocrd.amount < amount || !(stakingReocrd.fromAddress.Equals(fromAddress)) || !(stakingReocrd.assetId.Equals(assetId)))
+            byte[] key = assetId.Concat(fromAddress);
+            var result = Storage.Get(key);
+            if (result.Length == 0) return false;
+            StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
+            //Nep5转账
+            object[] Params = new object[]
+            {
+                ExecutionEngine.ExecutingScriptHash,
+                fromAddress,
+                amount
+            };
+            DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
+            if (!(bool)nep5Contract("transfer", Params)) return false; //throw exception when release
+            if (stakingRecord.amount < amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
             {
                 return false;
             }
             else             
             {
-                BigInteger remainAmount = (stakingReocrd.amount - amount);
-                UpdateStackRecord( -remainAmount, assetId);
-                //计算需要扣除的收益
-                BigInteger MinusProfit = GetHistoryUintStackProfitSum(assetId, stakingReocrd.height);
-                //计算总收益
-                BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, currentHeight);
-                SaveUserStaking(fromAddress, remainAmount, assetId, currentHeight, SumProfit - MinusProfit, keyHash);
+                BigInteger remainAmount = (stakingRecord.amount - amount);
+                UpdateStackRecord(assetId);
+                //收益结算
+                BigInteger currentProfit = SettleProfit(stakingRecord.height, stakingRecord.amount, assetId) + stakingRecord.Profit;
+                SaveUserStaking(fromAddress, remainAmount, assetId, currentHeight, currentProfit, key);
             }
-            //Nep5转账
-            DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
-            object[] Params = new object[]
-            {                
-                ExecutionEngine.ExecutingScriptHash,
-                fromAddress,
-                amount
-            };
-            if (!(bool)nep5Contract("transfer", Params)) return false; //throw exception when release
             return true;
         }
 
-        public static bool ClaimFLM(byte[] fromAddress, byte[] keyHash, byte[] callingScript) 
+        public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript) 
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
-            StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(keyHash).Deserialize();
+            byte[] key = assetId.Concat(fromAddress);
+            StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(key).Deserialize();
             if (stakingReocrd.fromAddress.Equals(fromAddress))
             {
                 return false;
             }
             var profitAmount = stakingReocrd.Profit;
-            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, stakingReocrd.height, 0, keyHash);
+            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, stakingReocrd.height, 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))             
             {
                 return false;
             }
             return true;
+        }
+
+        public static BigInteger SettleProfit(BigInteger recordHeight, BigInteger amount, byte[] assetId) 
+        {
+            BigInteger currentHeight = Blockchain.GetHeight();
+            BigInteger MinusProfit = GetHistoryUintStackProfitSum(assetId, recordHeight);
+            BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, currentHeight);
+            BigInteger currentProfit = (SumProfit - MinusProfit) * amount;
+            return currentProfit;
         }
     }
 }
