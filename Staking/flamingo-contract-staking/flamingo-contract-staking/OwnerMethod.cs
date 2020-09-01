@@ -31,9 +31,9 @@ namespace flamingo_contract_staking
         {
             if (Runtime.CheckWitness(originOwner))
             {
-                byte[] key = adminPrefix.Concat(admin);
-                if (IsAdmin(key))
+                if (IsAdmin(admin))
                 {
+                    byte[] key = adminPrefix.Concat(admin);
                     Storage.Delete(key);
                     return true;
                 }
