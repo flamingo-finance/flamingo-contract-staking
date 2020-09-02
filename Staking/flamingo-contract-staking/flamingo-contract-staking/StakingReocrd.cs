@@ -20,6 +20,54 @@ namespace flamingo_contract_staking
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
+            if (Runtime.Trigger == TriggerType.Verification)
+            {
+                return false;
+            }
+            else if (Runtime.Trigger == TriggerType.Application) 
+            {
+                byte[] ExecutingScriptHash = ExecutionEngine.ExecutingScriptHash;
+                if (method == "staking")
+                {
+                    return Staking((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
+                }
+                else if (method == "refund")
+                {
+                    return Refund((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
+                }
+                else if (method == "claimflm")
+                {
+                    return ClaimFLM((byte[])args[0], (byte[])args[1], ExecutingScriptHash);
+                }
+                else if (method == "checkflm")
+                {
+                    return CheckFLM((byte[])args[0], (byte[])args[1]);
+                }
+                else if (method == "addadmin")
+                {
+                    return AddAdmin((byte[])args[0]);
+                }
+                else if (method == "removeadmin")
+                {
+                    return RemoveAdmin((byte[])args[0]);
+                }
+                else if (method == "setflmaddress")
+                {
+                    return SetFlmAddress((byte[])args[0], (byte[])args[1]);
+                }
+                else if (method == "getflmaddress")
+                {
+                    return GetFlmAddress();
+                }
+                else if (method == "addasset")
+                {
+                    return AddAsset((byte[])args[0], (byte[])args[1]);
+                }
+                else if (method == "removeasset") 
+                {
+                    return RemoveAsset((byte[])args[0], (byte[])args[1]);
+                }
+            }
             return false;
         }
 
