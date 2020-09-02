@@ -90,21 +90,36 @@ namespace flamingo_contract_staking
         [DisplayName("transfer")]
         public static bool Transfer(byte[] from, byte[] to, BigInteger amt)
         {
+            // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
             assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
-            assert(amt > 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
             assert(Runtime.CheckWitness(from) || from.Equals(ExecutionEngine.CallingScriptHash), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
-            assert(!from.Equals(to), "trasnfer: from-".AsByteArray().Concat(from).Concat(" eqals to-".AsByteArray()).Concat(to).AsString());
+            assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+
+            if (from.Equals(to))
+            {
+                return true;
+            }
+            if (!Blockchain.GetContract(to).IsPayable)
+            {
+                return false;
+            }
 
             BigInteger fromAmt = Storage.Get(BalancePrefix.Concat(from)).AsBigInteger();
-            assert(fromAmt >= amt, "transfer: amount-".AsByteArray().Concat(amt.ToByteArray()).Concat(" is greater than fromAmt-".AsByteArray()).Concat(fromAmt.ToByteArray()).AsString());
 
-            if (fromAmt == amt)
-                Storage.Delete(BalancePrefix.Concat(from));
-            else
-                Storage.Put(BalancePrefix.Concat(from), fromAmt - amt);
+            if (fromAmt < amt)
+            {
+                return false;
+            }
+            if (amt > 0)
+            {
+                if (fromAmt == amt)
+                    Storage.Delete(BalancePrefix.Concat(from));
+                else
+                    Storage.Put(BalancePrefix.Concat(from), fromAmt - amt);
 
-            BigInteger toAmt = Storage.Get(BalancePrefix.Concat(to)).AsBigInteger();
-            Storage.Put(BalancePrefix.Concat(to), toAmt + amt);
+                BigInteger toAmt = Storage.Get(BalancePrefix.Concat(to)).AsBigInteger();
+                Storage.Put(BalancePrefix.Concat(to), toAmt + amt);
+            }
 
             TransferEvent(from, to, amt);
 
@@ -131,6 +146,11 @@ namespace flamingo_contract_staking
             assert(amt > 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
             assert(Runtime.CheckWitness(spender) || owner.Equals(ExecutionEngine.CallingScriptHash), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
 
+            if (spender.Equals(owner) || owner.Equals(receiver))
+            {
+                return true;
+            }
+
             byte[] ownerKey = BalancePrefix.Concat(owner);
             BigInteger ownerAmt = Storage.Get(ownerKey).AsBigInteger();
             assert(ownerAmt >= amt, "transferFrom: Owner balance-".AsByteArray().Concat(amt.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());
@@ -148,7 +168,15 @@ namespace flamingo_contract_staking
             else
             {
                 Storage.Put(allowanceKey, allowance - amt);
-                Storage.Put(ownerKey, ownerAmt - amt);
+                
+                Storage.Put(allowanceKey, allowance - amt);
+                if (amt == ownerAmt)
+                {
+                    Storage.Delete(ownerKey);
+                }else
+                {
+                    Storage.Put(ownerKey, ownerAmt - amt);
+                }
             }
 
             Storage.Put(BalancePrefix.Concat(receiver), Storage.Get(BalancePrefix.Concat(receiver)).AsBigInteger() + amt);
