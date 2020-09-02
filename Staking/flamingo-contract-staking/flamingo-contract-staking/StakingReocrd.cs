@@ -59,9 +59,50 @@ namespace flamingo_contract_staking
                 {
                     return AddAsset((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "removeasset") 
+                else if (method == "removeasset")
                 {
                     return RemoveAsset((byte[])args[0], (byte[])args[1]);
+                }
+                else if (method == "setshareamount")
+                {
+                    return SetCurrentShareAmount((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
+                }
+
+                else if (method == "getshareamount")
+                {
+                    return GetCurrentShareAmount((byte[])args[0]);
+                }
+                else if (method == "isadmin")
+                {
+                    return IsAdmin((byte[])args[0]);
+                }
+                else if (method == "isinwhitelist")
+                {
+                    return IsInWhiteList((byte[])args[0]);
+                }
+
+                else if (method == "getuintprofit")
+                {
+                    var assetId = (byte[])args[0];
+
+                    var currentTotalStakingAmount = GetCurrentTotalAmount(assetId);
+                    var currentShareAmount = GetCurrentShareAmount(assetId);
+                    return currentShareAmount / currentTotalStakingAmount;
+                }
+                else if (method == "getstackingamount")
+                {
+                    var fromAddress = (byte[])args[0];
+                    var assetId = (byte[])args[1];
+
+                    byte[] key = assetId.Concat(fromAddress);
+                    var result = Storage.Get(key);
+
+                    if (result.Length != 0)
+                    {
+                        StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
+                        return stakingRecord.amount;
+                    }
+                    return 0;
                 }
             }
             return false;
@@ -90,7 +131,7 @@ namespace flamingo_contract_staking
             SaveUserStaking(fromAddress, amount, assetId, currentHeight, currentProfit, key);
             UpdateStackRecord(assetId);
             return true;
-        }
+        }        
 
         public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {

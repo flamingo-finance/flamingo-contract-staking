@@ -33,7 +33,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        private static BigInteger GetCurrentShareAmount(byte[] assetId) 
+        public static BigInteger GetCurrentShareAmount(byte[] assetId) 
         {
             if (IsInWhiteList(assetId)) 
             {

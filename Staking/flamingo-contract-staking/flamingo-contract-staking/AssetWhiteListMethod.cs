@@ -47,7 +47,7 @@ namespace flamingo_contract_staking
 
         }
 
-        private static bool IsInWhiteList(byte[] assetId) 
+        public static bool IsInWhiteList(byte[] assetId) 
         {
             byte[] key = assetPrefix.Concat(assetId);
             var result = Storage.Get(key);
