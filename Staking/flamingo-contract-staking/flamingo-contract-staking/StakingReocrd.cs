@@ -10,13 +10,9 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static byte[] _currentTotalAmount = new byte[] { 0x00, 0x01 };
-        private static byte[] _currentRateHeightPrefix = new byte[] { 0x01, 0x01 };        
-        private static byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-
-        private static byte[] _historyUintStackProfitSum = new byte[] { 0x02, 0x01 };
-
-        private static BigInteger StartHeight = 10000;
+        private static readonly byte[] _currentRateHeightPrefix = new byte[] { 0x01, 0x01 };        
+        private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
+        private static readonly BigInteger StartHeight = 10000;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {

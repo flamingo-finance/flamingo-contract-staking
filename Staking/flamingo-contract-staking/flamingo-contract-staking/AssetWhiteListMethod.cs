@@ -10,7 +10,7 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static byte[] assetPrefix = new byte[] { 0x04, 0x01 };
+        private static readonly byte[] assetPrefix = new byte[] { 0x04, 0x01 };
         public static bool AddAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))

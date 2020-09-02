@@ -10,6 +10,7 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
+        private static readonly byte[] _historyUintStackProfitSum = new byte[] { 0x02, 0x01 };
         private static BigInteger GetHistoryUintStackProfitSum(byte[] assetId, BigInteger height)
         {
             byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(height.AsByteArray()));
@@ -94,7 +95,6 @@ namespace flamingo_contract_staking
 
         private static BigInteger GetCurrentTotalAmount(byte[] assetId)
         {
-            //TODO, 通过balanceOf查询余额
             var Params = new object[] { ExecutionEngine.ExecutingScriptHash };
             BigInteger totalAmount = (BigInteger)((DyncCall)assetId.ToDelegate())("balanceOf", Params);
             return totalAmount;

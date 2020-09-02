@@ -10,7 +10,7 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static byte[] _currentShareAmount = new byte[] { 0x06, 0x01 };
+        private static readonly byte[] _currentShareAmount = new byte[] { 0x06, 0x01 };
         public static bool SetCurrentShareAmount(byte[] assetId, BigInteger amount, byte[] adminAddress) 
         {
             if (IsInWhiteList(assetId) && IsAdmin(adminAddress) && Runtime.CheckWitness(adminAddress))
