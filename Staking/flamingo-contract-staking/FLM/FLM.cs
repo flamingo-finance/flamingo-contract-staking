@@ -163,20 +163,19 @@ namespace flamingo_contract_staking
             if (amt == allowance)
             {
                 Storage.Delete(allowanceKey);
-                Storage.Put(BalancePrefix.Concat(owner), ownerAmt - amt);
             }
             else
             {
                 Storage.Put(allowanceKey, allowance - amt);
-                
-                Storage.Put(allowanceKey, allowance - amt);
-                if (amt == ownerAmt)
-                {
-                    Storage.Delete(ownerKey);
-                }else
-                {
-                    Storage.Put(ownerKey, ownerAmt - amt);
-                }
+            }
+
+            if (amt == ownerAmt)
+            {
+                Storage.Delete(ownerKey);
+            }
+            else
+            {
+                Storage.Put(ownerKey, ownerAmt - amt);
             }
 
             Storage.Put(BalancePrefix.Concat(receiver), Storage.Get(BalancePrefix.Concat(receiver)).AsBigInteger() + amt);
