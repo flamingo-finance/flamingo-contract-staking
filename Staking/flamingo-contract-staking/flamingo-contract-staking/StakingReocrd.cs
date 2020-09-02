@@ -99,6 +99,18 @@ namespace flamingo_contract_staking
             return true;
         }
 
+        public static BigInteger CheckFLM(byte[] fromAddress, byte[] assetId)         
+        {
+            byte[] key = assetId.Concat(fromAddress);
+            var result = Storage.Get(key);
+            if (result.Length != 0) 
+            {
+                StakingReocrd stakingReocrd = (StakingReocrd)result.Deserialize();
+                return stakingReocrd.Profit;
+            }
+            return 0;
+        }
+
         public static BigInteger SettleProfit(BigInteger recordHeight, BigInteger amount, byte[] assetId) 
         {
             BigInteger currentHeight = Blockchain.GetHeight();

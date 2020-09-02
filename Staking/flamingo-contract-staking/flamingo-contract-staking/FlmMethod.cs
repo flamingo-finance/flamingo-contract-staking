@@ -11,6 +11,7 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
+        private static readonly byte[] _flmPrefix = new byte[] { 0x07, 0x01 };
         private static bool MintFLM(byte[] receiver, BigInteger amount, byte[] callingScript)
         {
             var Params = new object[]
@@ -19,11 +20,35 @@ namespace flamingo_contract_staking
                 receiver,
                 amount
             };
-            return FlmMain("mint", Params);
+            byte[] flmHash = GetFlmAddress();
+            if (flmHash.Length == 0)
+            {
+                Runtime.Notify("flmHash not set");
+                return false;
+                //throw new Exception();
+            }
+            else 
+            {
+                return (bool)((DyncCall)(flmHash.ToDelegate()))("Mint", Params);
+            }
         }
 
-        //FLM合约
-        [Appcall("b9d7ea3062e6aeeb3e8ad9548220c4ba1361d263")]
-        public static extern bool FlmMain(string operation, params object[] args);
+        private static bool SetFlmAddress(byte[] flmScriptHash, byte[] adminHash)
+        {
+            if (Runtime.CheckWitness(adminHash) && IsAdmin(adminHash) && flmScriptHash.Length == 20)
+            {
+                Storage.Put(_flmPrefix, flmScriptHash);
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+
+        private static byte[] GetFlmAddress()       
+        {
+            return Storage.Get(_flmPrefix);
+        }
     }
 }
