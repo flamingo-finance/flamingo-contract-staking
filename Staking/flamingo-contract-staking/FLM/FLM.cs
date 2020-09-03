@@ -42,6 +42,7 @@ namespace flamingo_contract_staking
                 byte[] callingScript = ExecutionEngine.CallingScriptHash;
                 if (method == "name") return Name();
                 if (method == "symbol") return Symbol();
+                if (method == "supportedStandards") return SupportedStandards();
                 if (method == "decimals") return Decimals();
                 if (method == "totalSupply") return TotalSupply();
                 if (method == "balanceOf") return BalanceOf((byte[])args[0]);
@@ -63,6 +64,9 @@ namespace flamingo_contract_staking
 
         [DisplayName("symbol")]
         public static string Symbol() => "FLM";
+
+        [DisplayName("supportedStandards")]
+        public static string[] SupportedStandards() => new string[] { "NEP-5", "NEP-7", "NEP-10" };
 
         [DisplayName("decimals")]
         public static byte Decimals() => 8;
@@ -100,10 +104,10 @@ namespace flamingo_contract_staking
             {
                 return true;
             }
-            if (!Blockchain.GetContract(to).IsPayable)
-            {
-                return false;
-            }
+            //if (!Blockchain.GetContract(to).IsPayable)
+            //{
+            //    return false;
+            //}
 
             BigInteger fromAmt = Storage.Get(BalancePrefix.Concat(from)).AsBigInteger();
 
