@@ -34,8 +34,12 @@ namespace flamingo_contract_staking
             //计算之后每stack收益率
             var currentTotalStakingAmount = GetCurrentTotalAmount(assetId);
             var currentShareAmount = GetCurrentShareAmount(assetId);
+            BigInteger currentUintStackProfit = 0;
             //TODO: 做正负号检查
-            var currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
+            if (currentTotalStakingAmount != 0)
+            {
+                currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
+            }          
             //更新当前每个stack收益率
             UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);
         }
