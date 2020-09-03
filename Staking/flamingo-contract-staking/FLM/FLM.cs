@@ -39,20 +39,21 @@ namespace flamingo_contract_staking
             }
             else if (Runtime.Trigger == TriggerType.Application)
             {
+                byte[] callingScript = ExecutionEngine.CallingScriptHash;
                 if (method == "name") return Name();
                 if (method == "symbol") return Symbol();
                 if (method == "decimals") return Decimals();
                 if (method == "totalSupply") return TotalSupply();
                 if (method == "balanceOf") return BalanceOf((byte[])args[0]);
                 if (method == "allowance") return Allowance((byte[])args[0], (byte[])args[1]);
-                if (method == "transfer") return Transfer((byte[])args[0], (byte[])args[1], (BigInteger)args[2]);
-                if (method == "approve") return Approve((byte[])args[0], (byte[])args[1], (BigInteger)args[2]);
-                if (method == "transferFrom") return TransferFrom((byte[])args[0], (byte[])args[1], (byte[])args[2], (BigInteger)args[3]);
+                if (method == "transfer") return Transfer((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
+                if (method == "approve") return Approve((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
+                if (method == "transferFrom") return TransferFrom((byte[])args[0], (byte[])args[1], (byte[])args[2], (BigInteger)args[3], callingScript);
                 if (method == "addPika") return AddPika((byte[])args[0]);
                 if (method == "removePika") return RemovePika((byte[])args[0]);
                 if (method == "isPika") return IsPika((byte[])args[0]);
                 if (method == "pikaCount") return PikaCount();
-                if (method == "mint") return Mint((byte[])args[0], (byte[])args[1], (BigInteger)args[2]);
+                if (method == "mint") return Mint((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
             }
             throw new InvalidOperationException("Invalid method: ".AsByteArray().Concat(method.AsByteArray()).AsString());
         }
@@ -88,11 +89,11 @@ namespace flamingo_contract_staking
         }
 
         [DisplayName("transfer")]
-        public static bool Transfer(byte[] from, byte[] to, BigInteger amt)
+        public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
         {
             // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
             assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
-            assert(Runtime.CheckWitness(from) || from.Equals(ExecutionEngine.CallingScriptHash), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
+            assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
             assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
 
             if (from.Equals(to))
@@ -128,11 +129,11 @@ namespace flamingo_contract_staking
 
 
         [DisplayName("approve")]
-        public static bool Approve(byte[] owner, byte[] spender, BigInteger amt)
+        public static bool Approve(byte[] owner, byte[] spender, BigInteger amt, byte[] callingScript)
         {
             assert(owner.Length == 20 && spender.Length == 20, "approve: invalid owner or spender, owner-".AsByteArray().Concat(owner).Concat("and spender-".AsByteArray()).Concat(spender).AsString());
             assert(amt > 0, "approve: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-            assert(Runtime.CheckWitness(owner) || owner.Equals(ExecutionEngine.CallingScriptHash), "approve: CheckWitness failed, owner-".AsByteArray().Concat(owner).AsString());
+            assert(Runtime.CheckWitness(owner) || owner.Equals(callingScript), "approve: CheckWitness failed, owner-".AsByteArray().Concat(owner).AsString());
 
             Storage.Put(AllowancePrefix.Concat(owner).Concat(spender), amt);
             ApproveEvent(owner, spender, amt);
@@ -140,11 +141,11 @@ namespace flamingo_contract_staking
         }
 
         [DisplayName("transferFrom")]
-        public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt)
+        public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
             assert(spender.Length == 20 && owner.Length == 20 && receiver.Length == 20, "transferFrom: invalid spender or owner or receiver, spender-".AsByteArray().Concat(spender).Concat(", owner-".AsByteArray()).Concat(owner).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             assert(amt > 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-            assert(Runtime.CheckWitness(spender) || owner.Equals(ExecutionEngine.CallingScriptHash), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
+            assert(Runtime.CheckWitness(spender) || owner.Equals(callingScript), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
 
             if (spender.Equals(owner) || owner.Equals(receiver))
             {
@@ -186,13 +187,13 @@ namespace flamingo_contract_staking
         }
 
         [DisplayName("mint")]
-        public static bool Mint(byte[] pika, byte[] receiver, BigInteger amt)
+        public static bool Mint(byte[] pika, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
             assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
 
             assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
-            assert(Runtime.CheckWitness(pika) || pika.Equals(ExecutionEngine.CallingScriptHash), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
+            assert(Runtime.CheckWitness(pika) || pika.Equals(callingScript), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
 
             Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amt);
             Storage.Put(SupplyKey, TotalSupply() + amt);
