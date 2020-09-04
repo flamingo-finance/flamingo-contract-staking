@@ -29,7 +29,7 @@ namespace flamingo_contract_staking
             }
             else 
             {
-                return (bool)((DyncCall)(flmHash.ToDelegate()))("Mint", Params);
+                return (bool)((DyncCall)(flmHash.ToDelegate()))("mint", Params);
             }
         }
 
