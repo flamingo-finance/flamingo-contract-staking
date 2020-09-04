@@ -104,6 +104,10 @@ namespace flamingo_contract_staking
                     }
                     return 0;
                 }
+                else if (method == "calculateprofit") 
+                {
+                    return CalculateProfit((byte[])args[0], (byte[])args[1]);
+                }
             }
             return false;
         }
@@ -122,6 +126,7 @@ namespace flamingo_contract_staking
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             BigInteger currentProfit = 0;
+            UpdateStackRecord(assetId);
             if (result.Length != 0)
             {
                 StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
@@ -129,7 +134,6 @@ namespace flamingo_contract_staking
                 amount += stakingRecord.amount;
             }
             SaveUserStaking(fromAddress, amount, assetId, currentHeight, currentProfit, key);
-            UpdateStackRecord(assetId);
             return true;
         }        
 
@@ -164,6 +168,18 @@ namespace flamingo_contract_staking
                 SaveUserStaking(fromAddress, remainAmount, assetId, currentHeight, currentProfit, key);
             }
             return true;
+        }
+
+        public static BigInteger CalculateProfit(byte[] fromaddress, byte[] assetId)
+        {
+            UpdateStackRecord(assetId);
+            byte[] key = assetId.Concat(fromaddress);
+            var result = Storage.Get(key);
+            if (result.Length == 0) return -1;
+            StakingReocrd staking = (StakingReocrd)result.Deserialize();
+            BigInteger currentProfit = SettleProfit(staking.height, staking.amount, assetId) + staking.Profit;
+            Runtime.Notify(staking.Profit);
+            return currentProfit;
         }
 
         public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript) 
