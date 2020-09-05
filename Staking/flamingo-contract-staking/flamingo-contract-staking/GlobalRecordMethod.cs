@@ -44,13 +44,13 @@ namespace flamingo_contract_staking
             UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);
         }
 
-        private static bool UpdateHistoryUintStackProfitSum(byte[] assetId)
+        private static void UpdateHistoryUintStackProfitSum(byte[] assetId)
         {
             BigInteger currentHeight = Blockchain.GetHeight();
             BigInteger recordHeight = GetCurrentRecordHeight(assetId);
             if (recordHeight >= currentHeight)
             {
-                return false;
+                return;
             }
             else
             {
@@ -58,7 +58,6 @@ namespace flamingo_contract_staking
                 BigInteger increaseAmount = uintStackProfit * (currentHeight - recordHeight);
                 byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(currentHeight.AsByteArray()));
                 Storage.Put(key, increaseAmount + GetHistoryUintStackProfitSum(assetId, recordHeight));
-                return true;
             }
         }
 
@@ -76,25 +75,24 @@ namespace flamingo_contract_staking
             }
         }
 
-        private static bool UpdateCurrentRecordHeight(byte[] assetId)
+        private static void UpdateCurrentRecordHeight(byte[] assetId)
         {
             byte[] currentRateHeightKey = _currentRateHeightPrefix.Concat(assetId);
             BigInteger currentHeight = Blockchain.GetHeight();
             Storage.Put(currentRateHeightKey, currentHeight);
-            return true;
         }
 
         private static BigInteger GetCurrentUintStackProfit(byte[] assetId)
         {
             byte[] _UintStackProfitKey = _currentUintStackProfitPrefix.Concat(assetId);
+            if (_UintStackProfitKey.Length == 0) return 0;
             return Storage.Get(_UintStackProfitKey).ToBigInteger();
         }
 
-        private static bool UpdateCurrentUintStackProfit(byte[] assetId, BigInteger profit)
+        private static void UpdateCurrentUintStackProfit(byte[] assetId, BigInteger profit)
         {
             byte[] _UintStackProfitKey = _currentUintStackProfitPrefix.Concat(assetId);
             Storage.Put(_UintStackProfitKey, profit);
-            return true;
         }
 
         private static BigInteger GetCurrentTotalAmount(byte[] assetId)

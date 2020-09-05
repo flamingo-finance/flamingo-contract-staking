@@ -121,8 +121,9 @@ namespace flamingo_contract_staking
                 ExecutionEngine.ExecutingScriptHash,
                 amount
             };
-            if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
             BigInteger currentHeight = Blockchain.GetHeight();
+            if (!checkIfStart(currentHeight)) return false;
+            if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             BigInteger currentProfit = 0;
@@ -142,6 +143,7 @@ namespace flamingo_contract_staking
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
             BigInteger currentHeight = Blockchain.GetHeight();
+            if (!checkIfStart(currentHeight)) return false;
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
@@ -224,6 +226,18 @@ namespace flamingo_contract_staking
             BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, currentHeight);
             BigInteger currentProfit = (SumProfit - MinusProfit) * amount;
             return currentProfit;
+        }
+
+        public static bool checkIfStart(BigInteger currentHeight) 
+        {
+            if (currentHeight >= StartHeight)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
     }
 }
