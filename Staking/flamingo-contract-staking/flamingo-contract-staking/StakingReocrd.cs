@@ -191,8 +191,10 @@ namespace flamingo_contract_staking
             {
                 return false;
             }
-            var profitAmount = stakingReocrd.Profit;
-            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, stakingReocrd.height, 0, key);
+            UpdateStackRecord(assetId);
+            BigInteger newProfit = SettleProfit(stakingReocrd.height, stakingReocrd.amount, assetId);
+            var profitAmount = stakingReocrd.Profit + newProfit;
+            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, Blockchain.GetHeight(), 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))             
             {
                 return false;
@@ -207,7 +209,10 @@ namespace flamingo_contract_staking
             if (result.Length != 0) 
             {
                 StakingReocrd stakingReocrd = (StakingReocrd)result.Deserialize();
-                return stakingReocrd.Profit;
+                UpdateStackRecord(assetId);
+                BigInteger newProfit = SettleProfit(stakingReocrd.height, stakingReocrd.amount, assetId);
+                var profitAmount = stakingReocrd.Profit + newProfit;
+                return profitAmount;
             }
             return 0;
         }
