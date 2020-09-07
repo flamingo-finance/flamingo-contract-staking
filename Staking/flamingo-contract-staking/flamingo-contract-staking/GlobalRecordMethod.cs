@@ -11,9 +11,9 @@ namespace flamingo_contract_staking
     public partial class StakingContract : SmartContract
     {
         private static readonly byte[] _historyUintStackProfitSum = new byte[] { 0x02, 0x01 };
-        private static BigInteger GetHistoryUintStackProfitSum(byte[] assetId, BigInteger height)
+        private static BigInteger GetHistoryUintStackProfitSum(byte[] assetId, BigInteger TimeStamp)
         {
-            byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(height.AsByteArray()));
+            byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(TimeStamp.AsByteArray()));
             var result = Storage.Get(key);
             if (result.Length == 0)
             {
@@ -25,12 +25,18 @@ namespace flamingo_contract_staking
             }
         }
 
-        private static void UpdateStackRecord(byte[] assetId)
+        public static BigInteger GetCurrentTimeStamp() 
+        {
+            BigInteger currentTimeStamp = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
+            return currentTimeStamp;
+        }
+
+        private static void UpdateStackRecord(byte[] assetId, BigInteger currentTimeStamp)
         {
             //清算历史每stack收益率
-            UpdateHistoryUintStackProfitSum(assetId);
+            UpdateHistoryUintStackProfitSum(assetId, currentTimeStamp);
             //更新当前收益率记账高度    
-            UpdateCurrentRecordHeight(assetId);
+            UpdateCurrentRecordTimeStamp(assetId);
             //计算之后每stack收益率
             var currentTotalStakingAmount = GetCurrentTotalAmount(assetId);
             var currentShareAmount = GetCurrentShareAmount(assetId);
@@ -44,30 +50,29 @@ namespace flamingo_contract_staking
             UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);
         }
 
-        private static void UpdateHistoryUintStackProfitSum(byte[] assetId)
-        {
-            BigInteger currentHeight = Blockchain.GetHeight();
-            BigInteger recordHeight = GetCurrentRecordHeight(assetId);
-            if (recordHeight >= currentHeight)
+        private static void UpdateHistoryUintStackProfitSum(byte[] assetId, BigInteger currentTimeStamp)
+        {            
+            BigInteger recordTimeStamp = GetCurrentRecordTimeStamp(assetId);
+            if (recordTimeStamp >= currentTimeStamp)
             {
                 return;
             }
             else
             {
                 var uintStackProfit = GetCurrentUintStackProfit(assetId);
-                BigInteger increaseAmount = uintStackProfit * (currentHeight - recordHeight);
-                byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(currentHeight.AsByteArray()));
-                Storage.Put(key, increaseAmount + GetHistoryUintStackProfitSum(assetId, recordHeight));
+                BigInteger increaseAmount = uintStackProfit * (currentTimeStamp - recordTimeStamp);
+                byte[] key = _historyUintStackProfitSum.Concat(assetId.Concat(currentTimeStamp.AsByteArray()));
+                Storage.Put(key, increaseAmount + GetHistoryUintStackProfitSum(assetId, recordTimeStamp));
             }
         }
 
-        private static BigInteger GetCurrentRecordHeight(byte[] assetId)
+        private static BigInteger GetCurrentRecordTimeStamp(byte[] assetId)
         {
-            byte[] currentRateHeightKey = _currentRateHeightPrefix.Concat(assetId);
-            var result = Storage.Get(currentRateHeightKey);
+            byte[] currentRateTimeStampKey = _currentRateTimeStampPrefix.Concat(assetId);
+            var result = Storage.Get(currentRateTimeStampKey);
             if (result.Length == 0)
             {
-                return StartHeight;
+                return StartStakingTimeStamp;
             }
             else
             {
@@ -75,11 +80,10 @@ namespace flamingo_contract_staking
             }
         }
 
-        private static void UpdateCurrentRecordHeight(byte[] assetId)
+        private static void UpdateCurrentRecordTimeStamp(byte[] assetId)
         {
-            byte[] currentRateHeightKey = _currentRateHeightPrefix.Concat(assetId);
-            BigInteger currentHeight = Blockchain.GetHeight();
-            Storage.Put(currentRateHeightKey, currentHeight);
+            byte[] currentRateTimeStampKey = _currentRateTimeStampPrefix.Concat(assetId);
+            Storage.Put(currentRateTimeStampKey, GetCurrentTimeStamp());
         }
 
         private static BigInteger GetCurrentUintStackProfit(byte[] assetId)

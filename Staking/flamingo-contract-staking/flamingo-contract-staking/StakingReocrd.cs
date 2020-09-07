@@ -10,9 +10,10 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static readonly byte[] _currentRateHeightPrefix = new byte[] { 0x01, 0x01 };        
+        private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-        private static readonly BigInteger StartHeight = 10000;
+        private static readonly uint StartStakingTimeStamp = 10000;
+        private static readonly uint StartRefundTimeStamp = 10000;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
@@ -104,10 +105,6 @@ namespace flamingo_contract_staking
                     }
                     return 0;
                 }
-                else if (method == "calculateprofit") 
-                {
-                    return CalculateProfit((byte[])args[0], (byte[])args[1]);
-                }
             }
             return false;
         }
@@ -121,20 +118,20 @@ namespace flamingo_contract_staking
                 ExecutionEngine.ExecutingScriptHash,
                 amount
             };
-            BigInteger currentHeight = Blockchain.GetHeight();
-            if (!checkIfStart(currentHeight)) return false;
+            BigInteger currentTimeStamp = GetCurrentTimeStamp();
+            if (!checkIfStakingStart(currentTimeStamp)) return false;
             if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             BigInteger currentProfit = 0;
-            UpdateStackRecord(assetId);
+            UpdateStackRecord(assetId, currentTimeStamp);
             if (result.Length != 0)
             {
                 StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
-                currentProfit = SettleProfit(stakingRecord.height, stakingRecord.amount, assetId) + stakingRecord.Profit;
+                currentProfit = SettleProfit(stakingRecord.timeStamp, stakingRecord.amount, assetId) + stakingRecord.Profit;
                 amount += stakingRecord.amount;
             }
-            SaveUserStaking(fromAddress, amount, assetId, currentHeight, currentProfit, key);
+            SaveUserStaking(fromAddress, amount, assetId, currentTimeStamp, currentProfit, key);
             return true;
         }        
 
@@ -142,8 +139,8 @@ namespace flamingo_contract_staking
         {
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
-            BigInteger currentHeight = Blockchain.GetHeight();
-            if (!checkIfStart(currentHeight)) return false;
+            BigInteger currentTimeStamp = GetCurrentTimeStamp();
+            if (!checkIfRefundStart(currentTimeStamp)) return false;
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
@@ -164,25 +161,25 @@ namespace flamingo_contract_staking
             else             
             {
                 BigInteger remainAmount = (stakingRecord.amount - amount);
-                UpdateStackRecord(assetId);
+                UpdateStackRecord(assetId, currentTimeStamp);
                 //收益结算
-                BigInteger currentProfit = SettleProfit(stakingRecord.height, stakingRecord.amount, assetId) + stakingRecord.Profit;
-                SaveUserStaking(fromAddress, remainAmount, assetId, currentHeight, currentProfit, key);
+                BigInteger currentProfit = SettleProfit(stakingRecord.timeStamp, stakingRecord.amount, assetId) + stakingRecord.Profit;
+                SaveUserStaking(fromAddress, remainAmount, assetId, currentTimeStamp, currentProfit, key);
             }
             return true;
         }
 
-        public static BigInteger CalculateProfit(byte[] fromaddress, byte[] assetId)
-        {
-            UpdateStackRecord(assetId);
-            byte[] key = assetId.Concat(fromaddress);
-            var result = Storage.Get(key);
-            if (result.Length == 0) return -1;
-            StakingReocrd staking = (StakingReocrd)result.Deserialize();
-            BigInteger currentProfit = SettleProfit(staking.height, staking.amount, assetId) + staking.Profit;
-            Runtime.Notify(staking.Profit);
-            return currentProfit;
-        }
+        //public static BigInteger CalculateProfit(byte[] fromaddress, byte[] assetId)
+        //{
+        //    UpdateStackRecord(assetId, GetCurrentTimeStamp());
+        //    byte[] key = assetId.Concat(fromaddress);
+        //    var result = Storage.Get(key);
+        //    if (result.Length == 0) return -1;
+        //    StakingReocrd staking = (StakingReocrd)result.Deserialize();
+        //    BigInteger currentProfit = SettleProfit(staking.timeStamp, staking.amount, assetId) + staking.Profit;
+        //    Runtime.Notify(staking.Profit);
+        //    return currentProfit;
+        //}
 
         public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript) 
         {
@@ -193,8 +190,8 @@ namespace flamingo_contract_staking
             {
                 return false;
             }
-            UpdateStackRecord(assetId);
-            BigInteger newProfit = SettleProfit(stakingReocrd.height, stakingReocrd.amount, assetId);
+            UpdateStackRecord(assetId, GetCurrentTimeStamp());
+            BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
             var profitAmount = stakingReocrd.Profit + newProfit;
             SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, Blockchain.GetHeight(), 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))             
@@ -211,26 +208,37 @@ namespace flamingo_contract_staking
             if (result.Length != 0) 
             {
                 StakingReocrd stakingReocrd = (StakingReocrd)result.Deserialize();
-                UpdateStackRecord(assetId);
-                BigInteger newProfit = SettleProfit(stakingReocrd.height, stakingReocrd.amount, assetId);
+                UpdateStackRecord(assetId, GetCurrentTimeStamp());
+                BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
                 var profitAmount = stakingReocrd.Profit + newProfit;
                 return profitAmount;
             }
             return 0;
         }
 
-        public static BigInteger SettleProfit(BigInteger recordHeight, BigInteger amount, byte[] assetId) 
+        public static BigInteger SettleProfit(BigInteger recordTimeStamp, BigInteger amount, byte[] assetId) 
         {
-            BigInteger currentHeight = Blockchain.GetHeight();
-            BigInteger MinusProfit = GetHistoryUintStackProfitSum(assetId, recordHeight);
-            BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, currentHeight);
+            BigInteger MinusProfit = GetHistoryUintStackProfitSum(assetId, recordTimeStamp);
+            BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, GetCurrentTimeStamp());
             BigInteger currentProfit = (SumProfit - MinusProfit) * amount;
             return currentProfit;
         }
 
-        public static bool checkIfStart(BigInteger currentHeight) 
+        public static bool checkIfStakingStart(BigInteger currentTimeStamp) 
         {
-            if (currentHeight >= StartHeight)
+            if (currentTimeStamp >= StartStakingTimeStamp)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+
+        public static bool checkIfRefundStart(BigInteger currentTimeStamp) 
+        {
+            if (currentTimeStamp >= StartRefundTimeStamp)
             {
                 return true;
             }

@@ -18,8 +18,8 @@ namespace flamingo_contract_staking
                 if (amount >= 0)
                 {
                     byte[] key = _currentShareAmount.Concat(assetId);
-                    Storage.Put(key, amount);
-                    UpdateStackRecord(assetId);
+                    Storage.Put(key, amount);                    
+                    UpdateStackRecord(assetId, GetCurrentTimeStamp());
                     return true;
                 }
                 else

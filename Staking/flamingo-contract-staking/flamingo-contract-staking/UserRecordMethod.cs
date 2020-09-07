@@ -10,11 +10,11 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static void SaveUserStaking(byte[] fromAddress, BigInteger amount, byte[] assetId, BigInteger height, BigInteger profit, byte[] key)
+        private static void SaveUserStaking(byte[] fromAddress, BigInteger amount, byte[] assetId, BigInteger timeStamp, BigInteger profit, byte[] key)
         {
             StakingReocrd record = new StakingReocrd
             {
-                height = height,
+                timeStamp = timeStamp,
                 fromAddress = fromAddress,
                 amount = amount,
                 assetId = assetId,

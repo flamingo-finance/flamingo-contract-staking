@@ -7,7 +7,7 @@ namespace flamingo_contract_staking
     {
         struct StakingReocrd
         {
-            public BigInteger height;
+            public BigInteger timeStamp;
             public byte[] fromAddress;
             public BigInteger amount;
             public byte[] assetId;
