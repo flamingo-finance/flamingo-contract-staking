@@ -111,7 +111,7 @@ namespace flamingo_contract_staking
 
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
-            if (!IsInWhiteList(assetId) || assetId.Length != 20) return false; //throw exception when release
+            if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress)) return false; //throw exception when release
             object[] Params = new object[]
             {
                 fromAddress,
@@ -246,6 +246,12 @@ namespace flamingo_contract_staking
             {
                 return false;
             }
+        }
+
+        public static bool CheckWhetherSelf(byte[] fromAddress) 
+        {
+            if (fromAddress.Equals(ExecutionEngine.ExecutingScriptHash)) return true;
+            return false;
         }
     }
 }
