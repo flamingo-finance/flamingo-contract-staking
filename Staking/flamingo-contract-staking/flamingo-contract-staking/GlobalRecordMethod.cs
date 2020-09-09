@@ -27,8 +27,7 @@ namespace flamingo_contract_staking
 
         public static BigInteger GetCurrentTimeStamp() 
         {
-            BigInteger currentTimeStamp = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
-            return currentTimeStamp;
+            return Runtime.Time;
         }
 
         private static void UpdateStackRecord(byte[] assetId, BigInteger currentTimeStamp)
