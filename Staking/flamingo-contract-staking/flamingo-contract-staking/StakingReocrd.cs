@@ -183,7 +183,7 @@ namespace flamingo_contract_staking
             UpdateStackRecord(assetId, GetCurrentTimeStamp());
             BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
             var profitAmount = stakingReocrd.Profit + newProfit;
-            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, Blockchain.GetHeight(), 0, key);
+            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, GetCurrentTimeStamp(), 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))             
             {
                 return false;
