@@ -169,22 +169,12 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        //public static BigInteger CalculateProfit(byte[] fromaddress, byte[] assetId)
-        //{
-        //    UpdateStackRecord(assetId, GetCurrentTimeStamp());
-        //    byte[] key = assetId.Concat(fromaddress);
-        //    var result = Storage.Get(key);
-        //    if (result.Length == 0) return -1;
-        //    StakingReocrd staking = (StakingReocrd)result.Deserialize();
-        //    BigInteger currentProfit = SettleProfit(staking.timeStamp, staking.amount, assetId) + staking.Profit;
-        //    Runtime.Notify(staking.Profit);
-        //    return currentProfit;
-        //}
-
         public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript) 
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
             byte[] key = assetId.Concat(fromAddress);
+            var result = Storage.Get(key);
+            if (result.Length == 0) return false;
             StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(key).Deserialize();
             if (!stakingReocrd.fromAddress.Equals(fromAddress))
             {
