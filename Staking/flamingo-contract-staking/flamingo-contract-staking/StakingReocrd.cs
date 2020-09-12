@@ -188,6 +188,7 @@ namespace flamingo_contract_staking
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
             byte[] key = assetId.Concat(fromAddress);
+            if (Storage.Get(key).Length == 0) return false;
             StakingReocrd stakingReocrd = (StakingReocrd)Storage.Get(key).Deserialize();
             if (!stakingReocrd.fromAddress.Equals(fromAddress))
             {
