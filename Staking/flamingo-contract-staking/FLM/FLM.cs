@@ -102,6 +102,7 @@ namespace flamingo_contract_staking
 
             if (from.Equals(to))
             {
+                TransferEvent(from, to, amt);
                 return true;
             }
             //if (!Blockchain.GetContract(to).IsPayable)
@@ -138,7 +139,7 @@ namespace flamingo_contract_staking
             assert(owner.Length == 20 && spender.Length == 20, "approve: invalid owner or spender, owner-".AsByteArray().Concat(owner).Concat("and spender-".AsByteArray()).Concat(spender).AsString());
             assert(amt > 0, "approve: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
             assert(Runtime.CheckWitness(owner) || owner.Equals(callingScript), "approve: CheckWitness failed, owner-".AsByteArray().Concat(owner).AsString());
-
+            if (spender.Equals(owner)) return true;
             Storage.Put(AllowancePrefix.Concat(owner).Concat(spender), amt);
             ApproveEvent(owner, spender, amt);
             return true;
@@ -148,14 +149,18 @@ namespace flamingo_contract_staking
         public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
             assert(spender.Length == 20 && owner.Length == 20 && receiver.Length == 20, "transferFrom: invalid spender or owner or receiver, spender-".AsByteArray().Concat(spender).Concat(", owner-".AsByteArray()).Concat(owner).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
-            assert(amt > 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            assert(amt >= 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
             assert(Runtime.CheckWitness(spender) || owner.Equals(callingScript), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
-
+            //为什么有approve的模式下, 还需要owner.Equals(callingScript)
             if (spender.Equals(owner) || owner.Equals(receiver))
             {
                 return true;
             }
-
+            if (amt == 0) 
+            {
+                TransferEvent(owner, receiver, amt);
+                return true; 
+            }
             byte[] ownerKey = BalancePrefix.Concat(owner);
             BigInteger ownerAmt = Storage.Get(ownerKey).AsBigInteger();
             assert(ownerAmt >= amt, "transferFrom: Owner balance-".AsByteArray().Concat(amt.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());

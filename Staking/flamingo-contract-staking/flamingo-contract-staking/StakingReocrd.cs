@@ -85,10 +85,11 @@ namespace flamingo_contract_staking
                 else if (method == "getuintprofit")
                 {
                     var assetId = (byte[])args[0];
-
-                    var currentTotalStakingAmount = GetCurrentTotalAmount(assetId);
-                    var currentShareAmount = GetCurrentShareAmount(assetId);
-                    return currentShareAmount / currentTotalStakingAmount;
+                    if (assetId.Length != 20 || IsInWhiteList(assetId)) 
+                    {
+                        return 0;
+                    }
+                    return GetCurrentUintStackProfit(assetId);
                 }
                 else if (method == "getstackingamount")
                 {
@@ -145,6 +146,10 @@ namespace flamingo_contract_staking
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
             StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
+            if (stakingRecord.amount < amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
+            {
+                return false;
+            }
             //Nep5转账
             object[] Params = new object[]
             {
@@ -154,10 +159,7 @@ namespace flamingo_contract_staking
             };
             DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
             if (!(bool)nep5Contract("transfer", Params)) return false; //throw exception when release
-            if (stakingRecord.amount < amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
-            {
-                return false;
-            }
+
             else             
             {
                 BigInteger remainAmount = (stakingRecord.amount - amount);
@@ -169,7 +171,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript) 
+        public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
             byte[] key = assetId.Concat(fromAddress);
@@ -184,7 +186,7 @@ namespace flamingo_contract_staking
             BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
             var profitAmount = stakingReocrd.Profit + newProfit;
             SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, GetCurrentTimeStamp(), 0, key);
-            if (!MintFLM(fromAddress, profitAmount, callingScript))             
+            if (!MintFLM(fromAddress, profitAmount, callingScript))
             {
                 return false;
             }
