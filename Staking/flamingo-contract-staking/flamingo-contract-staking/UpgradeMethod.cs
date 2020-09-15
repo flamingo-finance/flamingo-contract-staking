@@ -14,13 +14,13 @@ namespace flamingo_contract_staking
         {
             if (!Runtime.CheckWitness(originOwner)) return false;
             byte[] newContractHash = Hash160(newScript);
-            if (!transferAssetsToNewContract(newContractHash)) throw new Exception();
+            if (!TransferAssetsToNewContract(newContractHash)) throw new Exception();
             Contract.Migrate(newScript, paramList, returnType, cps, name, version, author, email, description);
             Runtime.Notify(new object[] { "upgrade", ExecutionEngine.ExecutingScriptHash, newContractHash });
             return true;
         }
 
-        private static bool transferAssetsToNewContract(byte[] newContractHash)
+        private static bool TransferAssetsToNewContract(byte[] newContractHash)
         {
             // Try to transfer nep5 asset from old contract into new contract
             byte[] assetHashMapInfo = Storage.Get(assetMapPrefix);

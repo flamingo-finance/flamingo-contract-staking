@@ -134,7 +134,7 @@ namespace flamingo_contract_staking
                 amount
             };
             BigInteger currentTimeStamp = GetCurrentTimeStamp();
-            if (!checkIfStakingStart(currentTimeStamp)) return false;
+            if (!CheckIfStakingStart(currentTimeStamp)) return false;
             if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
@@ -155,7 +155,7 @@ namespace flamingo_contract_staking
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
             BigInteger currentTimeStamp = GetCurrentTimeStamp();
-            if (!checkIfRefundStart(currentTimeStamp)) return false;
+            if (!CheckIfRefundStart(currentTimeStamp)) return false;
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
@@ -230,7 +230,7 @@ namespace flamingo_contract_staking
             return currentProfit;
         }
 
-        public static bool checkIfStakingStart(BigInteger currentTimeStamp) 
+        public static bool CheckIfStakingStart(BigInteger currentTimeStamp) 
         {
             if (currentTimeStamp >= StartStakingTimeStamp)
             {
@@ -242,7 +242,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        public static bool checkIfRefundStart(BigInteger currentTimeStamp) 
+        public static bool CheckIfRefundStart(BigInteger currentTimeStamp) 
         {
             if (currentTimeStamp >= StartRefundTimeStamp)
             {

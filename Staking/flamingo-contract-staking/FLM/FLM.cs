@@ -80,15 +80,15 @@ namespace flamingo_contract_staking
         [DisplayName("balanceOf")]
         public static BigInteger BalanceOf(byte[] owner)
         {
-            assert(owner.Length == 20, "balanceOf: invalid owner-".AsByteArray().Concat(owner).AsString());
+            Assert(owner.Length == 20, "balanceOf: invalid owner-".AsByteArray().Concat(owner).AsString());
             return Storage.Get(BalancePrefix.Concat(owner)).AsBigInteger();
         }
 
         [DisplayName("allowance")]
         public static BigInteger Allowance(byte[] owner, byte[] spender)
         {
-            assert(owner.Length == 20, "allowance: invalid owner-".AsByteArray().Concat(owner).AsString());
-            assert(spender.Length == 20, "allowance: invalid spender-".AsByteArray().Concat(spender).AsString());
+            Assert(owner.Length == 20, "allowance: invalid owner-".AsByteArray().Concat(owner).AsString());
+            Assert(spender.Length == 20, "allowance: invalid spender-".AsByteArray().Concat(spender).AsString());
             return Storage.Get(AllowancePrefix.Concat(owner).Concat(spender)).AsBigInteger();
         }
 
@@ -96,9 +96,9 @@ namespace flamingo_contract_staking
         public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
         {
             // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
-            assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
-            assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
-            assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            Assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
+            Assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
+            Assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
 
             if (from.Equals(to))
             {
@@ -136,9 +136,9 @@ namespace flamingo_contract_staking
         [DisplayName("approve")]
         public static bool Approve(byte[] owner, byte[] spender, BigInteger amt, byte[] callingScript)
         {
-            assert(owner.Length == 20 && spender.Length == 20, "approve: invalid owner or spender, owner-".AsByteArray().Concat(owner).Concat("and spender-".AsByteArray()).Concat(spender).AsString());
-            assert(amt > 0, "approve: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-            assert(Runtime.CheckWitness(owner) || owner.Equals(callingScript), "approve: CheckWitness failed, owner-".AsByteArray().Concat(owner).AsString());
+            Assert(owner.Length == 20 && spender.Length == 20, "approve: invalid owner or spender, owner-".AsByteArray().Concat(owner).Concat("and spender-".AsByteArray()).Concat(spender).AsString());
+            Assert(amt > 0, "approve: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            Assert(Runtime.CheckWitness(owner) || owner.Equals(callingScript), "approve: CheckWitness failed, owner-".AsByteArray().Concat(owner).AsString());
             if (spender.Equals(owner)) return true;
             Storage.Put(AllowancePrefix.Concat(owner).Concat(spender), amt);
             ApproveEvent(owner, spender, amt);
@@ -148,9 +148,9 @@ namespace flamingo_contract_staking
         [DisplayName("transferFrom")]
         public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
-            assert(spender.Length == 20 && owner.Length == 20 && receiver.Length == 20, "transferFrom: invalid spender or owner or receiver, spender-".AsByteArray().Concat(spender).Concat(", owner-".AsByteArray()).Concat(owner).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
-            assert(amt >= 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-            assert(Runtime.CheckWitness(spender) || owner.Equals(callingScript), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
+            Assert(spender.Length == 20 && owner.Length == 20 && receiver.Length == 20, "transferFrom: invalid spender or owner or receiver, spender-".AsByteArray().Concat(spender).Concat(", owner-".AsByteArray()).Concat(owner).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
+            Assert(amt >= 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            Assert(Runtime.CheckWitness(spender) || owner.Equals(callingScript), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
             //为什么有approve的模式下, 还需要owner.Equals(callingScript)
             if (spender.Equals(owner) || owner.Equals(receiver))
             {
@@ -163,12 +163,12 @@ namespace flamingo_contract_staking
             }
             byte[] ownerKey = BalancePrefix.Concat(owner);
             BigInteger ownerAmt = Storage.Get(ownerKey).AsBigInteger();
-            assert(ownerAmt >= amt, "transferFrom: Owner balance-".AsByteArray().Concat(amt.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());
+            Assert(ownerAmt >= amt, "transferFrom: Owner balance-".AsByteArray().Concat(amt.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());
 
             byte[] allowanceKey = AllowancePrefix.Concat(owner).Concat(spender);
             BigInteger allowance = Storage.Get(allowanceKey).AsBigInteger();
 
-            assert(allowance >= amt, "transferFrom: allowance-".AsByteArray().Concat(allowance.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());
+            Assert(allowance >= amt, "transferFrom: allowance-".AsByteArray().Concat(allowance.ToByteArray()).Concat(" is less than amt-".AsByteArray()).Concat(amt.ToByteArray()).AsString());
 
             if (amt == allowance)
             {
@@ -198,11 +198,11 @@ namespace flamingo_contract_staking
         [DisplayName("mint")]
         public static bool Mint(byte[] pika, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
-            assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
-            assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            Assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
+            Assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
 
-            assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
-            assert(Runtime.CheckWitness(pika) || pika.Equals(callingScript), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
+            Assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
+            Assert(Runtime.CheckWitness(pika) || pika.Equals(callingScript), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
 
             Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amt);
             Storage.Put(SupplyKey, TotalSupply() + amt);
@@ -214,8 +214,8 @@ namespace flamingo_contract_staking
         [DisplayName("addPika")]
         public static bool AddPika(byte[] newPika)
         {
-            assert(Runtime.CheckWitness(Pika) && !newPika.Equals(Pika), "addPika: CheckWitness failed, only first pika can add other pika");
-            assert(!IsPika(newPika), "addPika: newPika-".AsByteArray().Concat(newPika).Concat(" is already a pika".AsByteArray()).AsString());
+            Assert(Runtime.CheckWitness(Pika) && !newPika.Equals(Pika), "addPika: CheckWitness failed, only first pika can add other pika");
+            Assert(!IsPika(newPika), "addPika: newPika-".AsByteArray().Concat(newPika).Concat(" is already a pika".AsByteArray()).AsString());
             Storage.Put(PikaPrefix.Concat(newPika), 1);
             Storage.Put(PikaCountKey, Storage.Get(PikaCountKey).AsBigInteger() + 1);
             AddPikaEvent(newPika);
@@ -225,8 +225,8 @@ namespace flamingo_contract_staking
         [DisplayName("removePika")]
         public static bool RemovePika(byte[] pika)
         {
-            assert(Runtime.CheckWitness(Pika) && !pika.Equals(Pika), "removePika: CheckWitness failed, only first pika can remove other pika");
-            assert(IsPika(pika), "removePika: pika-".AsByteArray().Concat(pika).Concat(" is NOT a pika".AsByteArray()).AsString());
+            Assert(Runtime.CheckWitness(Pika) && !pika.Equals(Pika), "removePika: CheckWitness failed, only first pika can remove other pika");
+            Assert(IsPika(pika), "removePika: pika-".AsByteArray().Concat(pika).Concat(" is NOT a pika".AsByteArray()).AsString());
             Storage.Delete(PikaPrefix.Concat(pika));
             Storage.Put(PikaCountKey, Storage.Get(PikaCountKey).AsBigInteger() - 1);
             RemovePikaEvent(pika);
@@ -246,7 +246,7 @@ namespace flamingo_contract_staking
         }
 
 
-        private static void assert(bool condition, string msg)
+        private static void Assert(bool condition, string msg)
         {
             if (!condition)
             {
