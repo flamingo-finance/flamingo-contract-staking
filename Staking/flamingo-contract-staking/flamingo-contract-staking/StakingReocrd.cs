@@ -85,7 +85,7 @@ namespace flamingo_contract_staking
                 else if (method == "getuintprofit")
                 {
                     var assetId = (byte[])args[0];
-                    if (assetId.Length != 20 || IsInWhiteList(assetId))
+                    if (assetId.Length != 20 || !IsInWhiteList(assetId))
                     {
                         return 0;
                     }
