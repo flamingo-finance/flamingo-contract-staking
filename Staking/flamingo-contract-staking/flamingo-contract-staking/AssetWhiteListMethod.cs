@@ -11,18 +11,54 @@ namespace flamingo_contract_staking
     public partial class StakingContract : SmartContract
     {
         private static readonly byte[] assetPrefix = new byte[] { 0x04, 0x01 };
+        private static readonly byte[] assetMapPrefix = new byte[] { 0x04, 0x02 };
         public static bool AddAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))
             {
                 byte[] key = assetPrefix.Concat(assetId);
                 Storage.Put(key, new byte[] { 0x01 });
+                AddAssetMap(assetId);
                 return true;
             }
             else 
             {
                 return false;
             }
+        }
+
+        private static bool AddAssetMap(byte[] assetId) 
+        {
+            Map<byte[], bool> assetMap; 
+            var rawAssetMap = Storage.Get(assetMapPrefix);
+            if (rawAssetMap.Length == 0)
+            {
+                assetMap = new Map<byte[], bool>();
+            }
+            else 
+            {
+                assetMap = (Map<byte[], bool>)rawAssetMap.Deserialize();
+            }            
+            assetMap[assetId] = true;
+            Storage.Put(assetMapPrefix, assetMap.Serialize());
+            return true;
+        }
+
+        private static bool RemoveAssetMap(byte[] assetId) 
+        {
+            Map<byte[], bool> assetMap;
+            var rawAssetMap = Storage.Get(assetMapPrefix);
+            if (rawAssetMap.Length == 0)
+            {
+                assetMap = new Map<byte[], bool>();
+            }
+            else
+            {
+                assetMap = (Map<byte[], bool>)rawAssetMap.Deserialize();
+            }
+            assetMap[assetId] = false;
+            Storage.Put(assetMapPrefix, assetMap.Serialize());
+            return true;
         }
 
         public static bool RemoveAsset(byte[] assetId, byte[] adminScriptHash) 
@@ -33,6 +69,7 @@ namespace flamingo_contract_staking
                 {
                     byte[] key = assetPrefix.Concat(assetId);
                     Storage.Delete(key);
+                    RemoveAssetMap(assetId);
                     return true;
                 }
                 else

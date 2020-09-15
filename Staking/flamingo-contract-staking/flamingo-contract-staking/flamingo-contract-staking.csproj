@@ -53,6 +53,7 @@
     <Compile Include="StakingReocrd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="struct.cs" />
+    <Compile Include="UpgradeMethod.cs" />
     <Compile Include="UserRecordMethod.cs" />
   </ItemGroup>
   <ItemGroup>

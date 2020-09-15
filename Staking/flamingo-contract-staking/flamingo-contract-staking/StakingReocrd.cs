@@ -85,7 +85,7 @@ namespace flamingo_contract_staking
                 else if (method == "getuintprofit")
                 {
                     var assetId = (byte[])args[0];
-                    if (assetId.Length != 20 || IsInWhiteList(assetId)) 
+                    if (assetId.Length != 20 || IsInWhiteList(assetId))
                     {
                         return 0;
                     }
@@ -105,6 +105,20 @@ namespace flamingo_contract_staking
                         return stakingRecord.amount;
                     }
                     return 0;
+                }
+                else if (method == "upgrade") 
+                {
+                    if (args.Length != 9) return false;
+                    byte[] script = (byte[])args[0];
+                    byte[] plist = (byte[])args[1];
+                    byte rtype = (byte)args[2];
+                    ContractPropertyState cps = (ContractPropertyState)args[3];
+                    string name = (string)args[4];
+                    string version = (string)args[5];
+                    string author = (string)args[6];
+                    string email = (string)args[7];
+                    string description = (string)args[8];
+                    return Upgrade(script, plist, rtype, cps, name, version, author, email, description);
                 }
             }
             return false;
