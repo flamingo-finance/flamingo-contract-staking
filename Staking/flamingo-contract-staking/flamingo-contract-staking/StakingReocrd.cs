@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
 using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
@@ -36,10 +34,6 @@ namespace flamingo_contract_staking
                 {
                     return ClaimFLM((byte[])args[0], (byte[])args[1], ExecutingScriptHash);
                 }
-                else if (method == "checkflm")
-                {
-                    return CheckFLM((byte[])args[0], (byte[])args[1]);
-                }
                 else if (method == "addadmin")
                 {
                     return AddAdmin((byte[])args[0]);
@@ -51,10 +45,6 @@ namespace flamingo_contract_staking
                 else if (method == "setflmaddress")
                 {
                     return SetFlmAddress((byte[])args[0], (byte[])args[1]);
-                }
-                else if (method == "getflmaddress")
-                {
-                    return GetFlmAddress();
                 }
                 else if (method == "addasset")
                 {
@@ -69,6 +59,14 @@ namespace flamingo_contract_staking
                     return SetCurrentShareAmount((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
                 }
 
+                else if (method == "getflmaddress")
+                {
+                    return GetFlmAddress();
+                }
+                else if (method == "checkflm")
+                {
+                    return CheckFLM((byte[])args[0], (byte[])args[1]);
+                }
                 else if (method == "getshareamount")
                 {
                     return GetCurrentShareAmount((byte[])args[0]);
@@ -81,49 +79,37 @@ namespace flamingo_contract_staking
                 {
                     return IsInWhiteList((byte[])args[0]);
                 }
-
                 else if (method == "getuintprofit")
-                {
-                    var assetId = (byte[])args[0];
-                    if (assetId.Length != 20 || !IsInWhiteList(assetId))
-                    {
-                        return 0;
-                    }
-                    return GetCurrentUintStackProfit(assetId);
+                {                    
+                    return GetUintProfit((byte[])args[0]);
                 }
-                else if (method == "getstackingamount")
+                else if (method == "getstakingamount")
                 {
-                    var fromAddress = (byte[])args[0];
-                    var assetId = (byte[])args[1];
-
-                    byte[] key = assetId.Concat(fromAddress);
-                    var result = Storage.Get(key);
-
-                    if (result.Length != 0)
-                    {
-                        StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
-                        return stakingRecord.amount;
-                    }
-                    return 0;
+                    return GetStakingAmount((byte[])args[0], (byte[])args[1]);
+                }
+                else if (method == "getcurrenttotalamount")
+                {
+                    return GetCurrentTotalAmount((byte[])args[0]);
                 }
                 else if (method == "upgrade") 
-                {
-                    if (args.Length != 9) return false;
-                    byte[] script = (byte[])args[0];
-                    byte[] plist = (byte[])args[1];
-                    byte rtype = (byte)args[2];
-                    ContractPropertyState cps = (ContractPropertyState)args[3];
-                    string name = (string)args[4];
-                    string version = (string)args[5];
-                    string author = (string)args[6];
-                    string email = (string)args[7];
-                    string description = (string)args[8];
-                    return Upgrade(script, plist, rtype, cps, name, version, author, email, description);
+                {                    
+                    return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
                 }
             }
             return false;
         }
 
+        [DisplayName("getuintprofit")]
+        public static object GetUintProfit(byte[] assetId)
+        {
+            if (assetId.Length != 20 || !IsInWhiteList(assetId))
+            {
+                return 0;
+            }
+            return GetCurrentUintStackProfit(assetId);
+        }
+
+        [DisplayName("staking")]
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
             if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress)) return false; //throw exception when release
@@ -148,8 +134,9 @@ namespace flamingo_contract_staking
             }
             SaveUserStaking(fromAddress, amount, assetId, currentTimeStamp, currentProfit, key);
             return true;
-        }        
+        }
 
+        [DisplayName("refund")]
         public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
             //提现检查
@@ -185,7 +172,11 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        public static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
+#if DEBUG
+        [DisplayName("claimflm")]
+        public static bool ClaimFLM(byte[] fromAddress, byte[] assetId) => true;
+#endif
+        private static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
             byte[] key = assetId.Concat(fromAddress);
@@ -207,7 +198,8 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        public static BigInteger CheckFLM(byte[] fromAddress, byte[] assetId)         
+        [DisplayName("checkflm")]
+        public static BigInteger CheckFLM(byte[] fromAddress, byte[] assetId) 
         {
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
@@ -222,7 +214,21 @@ namespace flamingo_contract_staking
             return 0;
         }
 
-        public static BigInteger SettleProfit(BigInteger recordTimeStamp, BigInteger amount, byte[] assetId) 
+        [DisplayName("getstakingamount")]
+        public static BigInteger GetStakingAmount(byte[] fromAddress, byte[] assetId)
+        {
+            byte[] key = assetId.Concat(fromAddress);
+            var result = Storage.Get(key);
+
+            if (result.Length != 0)
+            {
+                StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
+                return stakingRecord.amount;
+            }
+            return 0;
+        }
+
+        private static BigInteger SettleProfit(BigInteger recordTimeStamp, BigInteger amount, byte[] assetId) 
         {
             BigInteger MinusProfit = GetHistoryUintStackProfitSum(assetId, recordTimeStamp);
             BigInteger SumProfit = GetHistoryUintStackProfitSum(assetId, GetCurrentTimeStamp());
@@ -230,7 +236,7 @@ namespace flamingo_contract_staking
             return currentProfit;
         }
 
-        public static bool CheckIfStakingStart(BigInteger currentTimeStamp) 
+        private static bool CheckIfStakingStart(BigInteger currentTimeStamp) 
         {
             if (currentTimeStamp >= StartStakingTimeStamp)
             {
@@ -242,7 +248,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        public static bool CheckIfRefundStart(BigInteger currentTimeStamp) 
+        private static bool CheckIfRefundStart(BigInteger currentTimeStamp) 
         {
             if (currentTimeStamp >= StartRefundTimeStamp)
             {
@@ -254,7 +260,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        public static bool CheckWhetherSelf(byte[] fromAddress) 
+        private static bool CheckWhetherSelf(byte[] fromAddress) 
         {
             if (fromAddress.Equals(ExecutionEngine.ExecutingScriptHash)) return true;
             return false;

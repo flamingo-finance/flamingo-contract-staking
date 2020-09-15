@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
 using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, ContractPropertyState cps, string name, string version, string author, string email, string description)
+        [DisplayName("upgrade")]
+        public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, int cps, string name, string version, string author, string email, string description)
         {
             if (!Runtime.CheckWitness(originOwner)) return false;
             byte[] newContractHash = Hash160(newScript);
             if (!TransferAssetsToNewContract(newContractHash)) throw new Exception();
-            Contract.Migrate(newScript, paramList, returnType, cps, name, version, author, email, description);
+            Contract.Migrate(newScript, paramList, returnType, (ContractPropertyState)cps, name, version, author, email, description);
             Runtime.Notify(new object[] { "upgrade", ExecutionEngine.ExecutingScriptHash, newContractHash });
             return true;
         }
@@ -40,6 +40,7 @@ namespace flamingo_contract_staking
                         if (assetBalance > 0)
                         {
                             success = (bool)((DyncCall)assetHash.ToDelegate())("transfer", new Object[] { self, newContractHash, assetBalance });
+                            Runtime.Notify(assetHash, success);
                         }
                     }
                 }

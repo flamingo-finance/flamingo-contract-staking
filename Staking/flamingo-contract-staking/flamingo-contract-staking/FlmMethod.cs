@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
-using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
-
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
@@ -33,6 +29,7 @@ namespace flamingo_contract_staking
             }
         }
 
+        [DisplayName("setflmaddress")]
         public static bool SetFlmAddress(byte[] flmScriptHash, byte[] adminHash)
         {
             if (Runtime.CheckWitness(adminHash) && IsAdmin(adminHash) && flmScriptHash.Length == 20)
@@ -46,6 +43,7 @@ namespace flamingo_contract_staking
             }
         }
 
+        [DisplayName("getflmaddress")]
         public static byte[] GetFlmAddress()       
         {
             return Storage.Get(_flmPrefix);

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
-using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
 
 namespace flamingo_contract_staking

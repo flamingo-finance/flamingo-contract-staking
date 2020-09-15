@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
 using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
@@ -25,7 +23,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        public static BigInteger GetCurrentTimeStamp() 
+        private static BigInteger GetCurrentTimeStamp() 
         {
             return Runtime.Time;
         }
@@ -98,7 +96,8 @@ namespace flamingo_contract_staking
             Storage.Put(_UintStackProfitKey, profit);
         }
 
-        private static BigInteger GetCurrentTotalAmount(byte[] assetId)
+        [DisplayName("getcurrenttotalamount")]
+        public static BigInteger GetCurrentTotalAmount(byte[] assetId)
         {
             var Params = new object[] { ExecutionEngine.ExecutingScriptHash };
             BigInteger totalAmount = (BigInteger)((DyncCall)assetId.ToDelegate())("balanceOf", Params);

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
-using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
         private static readonly byte[] _currentShareAmount = new byte[] { 0x06, 0x01 };
+
+        [DisplayName("setshareamount")]
         public static bool SetCurrentShareAmount(byte[] assetId, BigInteger amount, byte[] adminAddress) 
         {
             if (IsInWhiteList(assetId) && IsAdmin(adminAddress) && Runtime.CheckWitness(adminAddress))
@@ -33,6 +32,7 @@ namespace flamingo_contract_staking
             }
         }
 
+        [DisplayName("getshareamount")]
         public static BigInteger GetCurrentShareAmount(byte[] assetId) 
         {
             if (IsInWhiteList(assetId)) 

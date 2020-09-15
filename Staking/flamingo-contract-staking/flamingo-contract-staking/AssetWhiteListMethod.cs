@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services;
-using Neo.SmartContract.Framework.Services.System;
+﻿using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
+using System.ComponentModel;
 
 namespace flamingo_contract_staking
 {
@@ -12,6 +8,8 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] assetPrefix = new byte[] { 0x04, 0x01 };
         private static readonly byte[] assetMapPrefix = new byte[] { 0x04, 0x02 };
+
+        [DisplayName("addasset")]
         public static bool AddAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))
@@ -61,6 +59,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
+        [DisplayName("removeasset")]
         public static bool RemoveAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))
@@ -84,6 +83,7 @@ namespace flamingo_contract_staking
 
         }
 
+        [DisplayName("isinwhitelist")]
         public static bool IsInWhiteList(byte[] assetId) 
         {
             byte[] key = assetPrefix.Concat(assetId);
