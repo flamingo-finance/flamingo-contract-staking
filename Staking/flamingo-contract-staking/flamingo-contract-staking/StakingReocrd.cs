@@ -112,7 +112,7 @@ namespace flamingo_contract_staking
         [DisplayName("staking")]
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
-            if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress)) return false; //throw exception when release
+            if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress) || amount <= 0) return false; //throw exception when release
             object[] Params = new object[]
             {
                 fromAddress,
@@ -147,7 +147,7 @@ namespace flamingo_contract_staking
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
             StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
-            if (stakingRecord.amount < amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
+            if (stakingRecord.amount <= amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
             {
                 return false;
             }
@@ -190,6 +190,7 @@ namespace flamingo_contract_staking
             UpdateStackRecord(assetId, GetCurrentTimeStamp());
             BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
             var profitAmount = stakingReocrd.Profit + newProfit;
+            if (profitAmount == 0) return true;
             SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, GetCurrentTimeStamp(), 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))
             {
