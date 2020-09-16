@@ -147,7 +147,7 @@ namespace flamingo_contract_staking
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
             StakingReocrd stakingRecord = (StakingReocrd)result.Deserialize();
-            if (stakingRecord.amount <= amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
+            if (stakingRecord.amount < amount || !(stakingRecord.fromAddress.Equals(fromAddress)) || !(stakingRecord.assetId.Equals(assetId)))
             {
                 return false;
             }
