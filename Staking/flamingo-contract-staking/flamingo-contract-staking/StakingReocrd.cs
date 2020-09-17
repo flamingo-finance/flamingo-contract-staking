@@ -11,7 +11,7 @@ namespace flamingo_contract_staking
         private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
         private static readonly uint StartStakingTimeStamp = 10000;
-        private static readonly uint StartRefundTimeStamp = 10000;
+        private static readonly uint StartClaimTimeStamp = 10000;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
@@ -141,8 +141,7 @@ namespace flamingo_contract_staking
         {
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
-            BigInteger currentTimeStamp = GetCurrentTimeStamp();
-            if (!CheckIfRefundStart(currentTimeStamp)) return false;
+            BigInteger currentTimeStamp = GetCurrentTimeStamp();            
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
@@ -179,6 +178,8 @@ namespace flamingo_contract_staking
         private static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
         {
             if (!Runtime.CheckWitness(fromAddress)) return false;
+            var currentTimeStamp = GetCurrentTimeStamp();
+            if (!CheckIfRefundStart(currentTimeStamp)) return false;
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             if (result.Length == 0) return false;
@@ -187,11 +188,11 @@ namespace flamingo_contract_staking
             {
                 return false;
             }
-            UpdateStackRecord(assetId, GetCurrentTimeStamp());
+            UpdateStackRecord(assetId, currentTimeStamp);
             BigInteger newProfit = SettleProfit(stakingReocrd.timeStamp, stakingReocrd.amount, assetId);
             var profitAmount = stakingReocrd.Profit + newProfit;
             if (profitAmount == 0) return true;
-            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, GetCurrentTimeStamp(), 0, key);
+            SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, currentTimeStamp, 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))
             {
                 return false;
@@ -251,7 +252,7 @@ namespace flamingo_contract_staking
 
         private static bool CheckIfRefundStart(BigInteger currentTimeStamp) 
         {
-            if (currentTimeStamp >= StartRefundTimeStamp)
+            if (currentTimeStamp >= StartClaimTimeStamp)
             {
                 return true;
             }
