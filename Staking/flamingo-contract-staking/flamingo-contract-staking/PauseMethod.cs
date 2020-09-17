@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-using Neo.SmartContract.Framework;
-using Neo.SmartContract.Framework.Services.System;
+﻿using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
 using System.ComponentModel;
 
