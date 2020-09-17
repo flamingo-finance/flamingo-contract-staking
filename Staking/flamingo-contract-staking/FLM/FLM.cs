@@ -128,7 +128,6 @@ namespace flamingo_contract_staking
                 BigInteger toAmt = Storage.Get(BalancePrefix.Concat(to)).AsBigInteger();
                 Storage.Put(BalancePrefix.Concat(to), toAmt + amt);
             }
-
             TransferEvent(from, to, amt);
 
             return true;
@@ -200,6 +199,7 @@ namespace flamingo_contract_staking
         [DisplayName("mint")]
         public static bool Mint(byte[] pika, byte[] receiver, BigInteger amt, byte[] callingScript)
         {
+            amt = amt / 100000000000000;
             Assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             Assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
 
