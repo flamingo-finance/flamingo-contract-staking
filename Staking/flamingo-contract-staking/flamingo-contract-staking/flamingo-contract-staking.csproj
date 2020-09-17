@@ -49,6 +49,7 @@
     <Compile Include="FlmMethod.cs" />
     <Compile Include="GlobalRecordMethod.cs" />
     <Compile Include="OwnerMethod.cs" />
+    <Compile Include="PauseMethod.cs" />
     <Compile Include="ShareManagementMethod.cs" />
     <Compile Include="StakingReocrd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

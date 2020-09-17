@@ -46,6 +46,7 @@ namespace flamingo_contract_staking
         [DisplayName("isadmin")]
         public static bool IsAdmin(byte[] admin) 
         {
+            if (admin.Equals(originOwner)) return true;
             byte[] key = adminPrefix.Concat(admin);
             var result = Storage.Get(key);
             if (result.Length != 0)

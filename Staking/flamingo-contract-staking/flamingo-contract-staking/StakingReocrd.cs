@@ -80,7 +80,7 @@ namespace flamingo_contract_staking
                     return IsInWhiteList((byte[])args[0]);
                 }
                 else if (method == "getuintprofit")
-                {                    
+                {
                     return GetUintProfit((byte[])args[0]);
                 }
                 else if (method == "getstakingamount")
@@ -91,8 +91,20 @@ namespace flamingo_contract_staking
                 {
                     return GetCurrentTotalAmount((byte[])args[0]);
                 }
-                else if (method == "upgrade") 
-                {                    
+                else if (method == "pause")
+                {
+                    return Pause((byte[])args[0]);
+                }
+                else if (method == "unpause")
+                {
+                    return Unpause((byte[])args[0]);
+                }
+                else if (method == "ispause") 
+                {
+                    return IsPaused();
+                }
+                else if (method == "upgrade")
+                {
                     return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
                 }
             }
@@ -112,6 +124,7 @@ namespace flamingo_contract_staking
         [DisplayName("staking")]
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
+            if (IsPaused()) return false;
             if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress) || amount <= 0) return false; //throw exception when release
             object[] Params = new object[]
             {
@@ -139,6 +152,7 @@ namespace flamingo_contract_staking
         [DisplayName("refund")]
         public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
+            if (IsPaused()) return false;
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
             BigInteger currentTimeStamp = GetCurrentTimeStamp();            
@@ -177,6 +191,7 @@ namespace flamingo_contract_staking
 #endif
         private static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
         {
+            if (IsPaused()) return false;
             if (!Runtime.CheckWitness(fromAddress)) return false;
             var currentTimeStamp = GetCurrentTimeStamp();
             if (!CheckIfRefundStart(currentTimeStamp)) return false;
