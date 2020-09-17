@@ -13,7 +13,7 @@ namespace flamingo_contract_staking
         [DisplayName("updatestart")]
         public static bool UpgradeStart() 
         {
-            if (!Runtime.CheckWitness(originOwner)) return false;
+            if (!Runtime.CheckWitness(GetOwner())) return false;
             var upgradeTimelock = Storage.Get(upgradeTimelockPrefix);
             if (upgradeTimelock.Length != 0) return false;
             Storage.Put(upgradeTimelockPrefix, GetCurrentTimeStamp() + 86400);
@@ -23,7 +23,7 @@ namespace flamingo_contract_staking
         [DisplayName("upgrade")]
         public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, int cps, string name, string version, string author, string email, string description)
         {
-            if (!Runtime.CheckWitness(originOwner)) return false;
+            if (!Runtime.CheckWitness(GetOwner())) return false;
             if (!UpgradeEnd()) return false;
             byte[] newContractHash = Hash160(newScript);
             if (!TransferAssetsToNewContract(newContractHash)) throw new Exception();
