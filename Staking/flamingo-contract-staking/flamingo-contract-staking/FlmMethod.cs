@@ -10,6 +10,7 @@ namespace flamingo_contract_staking
         private static readonly byte[] _flmPrefix = new byte[] { 0x07, 0x01 };
         private static bool MintFLM(byte[] receiver, BigInteger amount, byte[] callingScript)
         {
+            amount = amount / 100000000000000;
             var Params = new object[]
             {
                 callingScript,

@@ -41,7 +41,7 @@ namespace flamingo_contract_staking
             //TODO: 做正负号检查
             if (currentTotalStakingAmount != 0)
             {
-                currentUintStackProfit = currentShareAmount / currentTotalStakingAmount;
+                currentUintStackProfit = 100000000000000 * currentShareAmount / currentTotalStakingAmount;
             }          
             //更新当前每个stack收益率
             UpdateCurrentUintStackProfit(assetId, currentUintStackProfit);

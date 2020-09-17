@@ -69,7 +69,7 @@ namespace flamingo_contract_staking
         public static string[] SupportedStandards() => new string[] { "NEP-5", "NEP-7", "NEP-10" };
 
         [DisplayName("decimals")]
-        public static byte Decimals() => 24;
+        public static byte Decimals() => 8;
 
         [DisplayName("totalSupply")]
         public static BigInteger TotalSupply()
@@ -91,8 +91,10 @@ namespace flamingo_contract_staking
             Assert(spender.Length == 20, "allowance: invalid spender-".AsByteArray().Concat(spender).AsString());
             return Storage.Get(AllowancePrefix.Concat(owner).Concat(spender)).AsBigInteger();
         }
-
-        [DisplayName("transfer")]
+#if DEBUG
+        [DisplayName("transfer")] //Only for ABI file
+        public static bool Transfer(byte[] from, byte[] to, BigInteger amount) => true;
+#endif
         public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
         {
             // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
