@@ -9,14 +9,35 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
+        private static readonly byte[] upgradeTimelockPrefix = new byte[] { 0x08, 0x01 };
+        [DisplayName("updatestart")]
+        public static bool UpgradeStart() 
+        {
+            if (!Runtime.CheckWitness(originOwner)) return false;
+            var upgradeTimelock = Storage.Get(upgradeTimelockPrefix);
+            if (upgradeTimelock.Length != 0) return false;
+            Storage.Put(upgradeTimelockPrefix, GetCurrentTimeStamp() + 86400);
+            return true;
+        }
+
         [DisplayName("upgrade")]
         public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, int cps, string name, string version, string author, string email, string description)
         {
             if (!Runtime.CheckWitness(originOwner)) return false;
+            if (!UpgradeEnd()) return false;
             byte[] newContractHash = Hash160(newScript);
             if (!TransferAssetsToNewContract(newContractHash)) throw new Exception();
             Contract.Migrate(newScript, paramList, returnType, (ContractPropertyState)cps, name, version, author, email, description);
             Runtime.Notify(new object[] { "upgrade", ExecutionEngine.ExecutingScriptHash, newContractHash });
+            return true;
+        }
+
+        public static bool UpgradeEnd() 
+        {
+            var upgradeTimelock = Storage.Get(upgradeTimelockPrefix);
+            if (upgradeTimelock.Length == 0) return false;
+            if (upgradeTimelock.ToBigInteger() > GetCurrentTimeStamp()) return false;
+            Storage.Put(upgradeTimelockPrefix, new byte[0]);
             return true;
         }
 
