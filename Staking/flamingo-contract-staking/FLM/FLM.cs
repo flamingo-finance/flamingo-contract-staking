@@ -69,7 +69,7 @@ namespace flamingo_contract_staking
         public static string[] SupportedStandards() => new string[] { "NEP-5", "NEP-7", "NEP-10" };
 
         [DisplayName("decimals")]
-        public static byte Decimals() => 8;
+        public static byte Decimals() => 24;
 
         [DisplayName("totalSupply")]
         public static BigInteger TotalSupply()
