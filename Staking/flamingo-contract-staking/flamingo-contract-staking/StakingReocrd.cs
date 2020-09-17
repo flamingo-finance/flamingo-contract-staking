@@ -99,7 +99,7 @@ namespace flamingo_contract_staking
                 {
                     return Unpause((byte[])args[0]);
                 }
-                else if (method == "ispause") 
+                else if (method == "ispaused") 
                 {
                     return IsPaused();
                 }
