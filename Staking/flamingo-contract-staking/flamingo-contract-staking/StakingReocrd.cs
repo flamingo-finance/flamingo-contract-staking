@@ -59,6 +59,10 @@ namespace flamingo_contract_staking
                 {
                     return SetCurrentShareAmount((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
                 }
+                else if (method == "setOwner")
+                {
+                    return SetOwner((byte[])args[0]);
+                }
 
                 else if (method == "getFlmAddress")
                 {
@@ -103,6 +107,10 @@ namespace flamingo_contract_staking
                 else if (method == "isPaused") 
                 {
                     return IsPaused();
+                }
+                else if (method == "getOwner")
+                {
+                    return GetOwner();
                 }
                 else if (method == "upgrade")
                 {
