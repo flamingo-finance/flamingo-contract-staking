@@ -107,11 +107,10 @@ namespace flamingo_contract_staking
                 TransferEvent(from, to, amt);
                 return true;
             }
-            //if (!Blockchain.GetContract(to).IsPayable)
-            //{
-            //    return false;
-            //}
-
+            if (!Blockchain.GetContract(to).IsPayable)
+            {
+                return false;
+            }
             BigInteger fromAmt = Storage.Get(BalancePrefix.Concat(from)).AsBigInteger();
 
             if (fromAmt < amt)
