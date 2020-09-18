@@ -9,7 +9,7 @@ namespace flamingo_contract_staking
         private static readonly byte[] assetPrefix = new byte[] { 0x04, 0x01 };
         private static readonly byte[] assetMapPrefix = new byte[] { 0x04, 0x02 };
 
-        [DisplayName("addasset")]
+        [DisplayName("addAsset")]
         public static bool AddAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))
@@ -59,7 +59,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        [DisplayName("removeasset")]
+        [DisplayName("removeAsset")]
         public static bool RemoveAsset(byte[] assetId, byte[] adminScriptHash) 
         {
             if (Runtime.CheckWitness(adminScriptHash) && IsAdmin(adminScriptHash))
@@ -83,7 +83,7 @@ namespace flamingo_contract_staking
 
         }
 
-        [DisplayName("isinwhitelist")]
+        [DisplayName("isInWhiteList")]
         public static bool IsInWhiteList(byte[] assetId) 
         {
             byte[] key = assetPrefix.Concat(assetId);

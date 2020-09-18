@@ -9,7 +9,7 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] _currentShareAmount = new byte[] { 0x06, 0x01 };
 
-        [DisplayName("setshareamount")]
+        [DisplayName("setShareAmount")]
         public static bool SetCurrentShareAmount(byte[] assetId, BigInteger amount, byte[] adminAddress) 
         {
             if (IsInWhiteList(assetId) && IsAdmin(adminAddress) && Runtime.CheckWitness(adminAddress))
@@ -32,7 +32,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("getshareamount")]
+        [DisplayName("getShareAmount")]
         public static BigInteger GetCurrentShareAmount(byte[] assetId) 
         {
             if (IsInWhiteList(assetId)) 

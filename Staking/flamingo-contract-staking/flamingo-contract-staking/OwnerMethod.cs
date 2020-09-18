@@ -32,7 +32,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        [DisplayName("addadmin")]
+        [DisplayName("addAdmin")]
         public static bool AddAdmin(byte[] admin)
         {
             if (Runtime.CheckWitness(GetOwner()))
@@ -47,7 +47,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("removeadmin")]
+        [DisplayName("removeAdmin")]
         public static bool RemoveAdmin(byte[] admin) 
         {
             if (Runtime.CheckWitness(GetOwner()))
@@ -66,7 +66,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("isadmin")]
+        [DisplayName("isAdmin")]
         public static bool IsAdmin(byte[] admin) 
         {
             if (admin.Equals(GetOwner())) return true;

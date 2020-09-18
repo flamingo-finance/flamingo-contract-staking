@@ -3,6 +3,7 @@ using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.System;
 using Neo.SmartContract.Framework.Services.Neo;
 using System.ComponentModel;
+using System;
 
 namespace flamingo_contract_staking
 {
@@ -10,8 +11,8 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-        private static readonly uint StartStakingTimeStamp = 10000;
-        private static readonly uint StartClaimTimeStamp = 10000;
+        private static readonly uint StartStakingTimeStamp = 1600963200;
+        private static readonly uint StartClaimTimeStamp = 1601481600;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
@@ -30,64 +31,64 @@ namespace flamingo_contract_staking
                 {
                     return Refund((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
                 }
-                else if (method == "claimflm")
+                else if (method == "claimFLM")
                 {
                     return ClaimFLM((byte[])args[0], (byte[])args[1], ExecutingScriptHash);
                 }
-                else if (method == "addadmin")
+                else if (method == "addAdmin")
                 {
                     return AddAdmin((byte[])args[0]);
                 }
-                else if (method == "removeadmin")
+                else if (method == "removeAdmin")
                 {
                     return RemoveAdmin((byte[])args[0]);
                 }
-                else if (method == "setflmaddress")
+                else if (method == "setFlmAddress")
                 {
                     return SetFlmAddress((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "addasset")
+                else if (method == "addAsset")
                 {
                     return AddAsset((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "removeasset")
+                else if (method == "removeAsset")
                 {
                     return RemoveAsset((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "setshareamount")
+                else if (method == "setShareAmount")
                 {
                     return SetCurrentShareAmount((byte[])args[0], (BigInteger)args[1], (byte[])args[2]);
                 }
 
-                else if (method == "getflmaddress")
+                else if (method == "getFlmAddress")
                 {
                     return GetFlmAddress();
                 }
-                else if (method == "checkflm")
+                else if (method == "checkFLM")
                 {
                     return CheckFLM((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "getshareamount")
+                else if (method == "getShareAmount")
                 {
                     return GetCurrentShareAmount((byte[])args[0]);
                 }
-                else if (method == "isadmin")
+                else if (method == "isAdmin")
                 {
                     return IsAdmin((byte[])args[0]);
                 }
-                else if (method == "isinwhitelist")
+                else if (method == "isInWhiteList")
                 {
                     return IsInWhiteList((byte[])args[0]);
                 }
-                else if (method == "getuintprofit")
+                else if (method == "getUintProfit")
                 {
                     return GetUintProfit((byte[])args[0]);
                 }
-                else if (method == "getstakingamount")
+                else if (method == "getStakingAmount")
                 {
                     return GetStakingAmount((byte[])args[0], (byte[])args[1]);
                 }
-                else if (method == "getcurrenttotalamount")
+                else if (method == "getCurrentTotalAmount")
                 {
                     return GetCurrentTotalAmount((byte[])args[0]);
                 }
@@ -99,7 +100,7 @@ namespace flamingo_contract_staking
                 {
                     return Unpause((byte[])args[0]);
                 }
-                else if (method == "ispaused") 
+                else if (method == "isPaused") 
                 {
                     return IsPaused();
                 }
@@ -111,7 +112,7 @@ namespace flamingo_contract_staking
             return false;
         }
 
-        [DisplayName("getuintprofit")]
+        [DisplayName("getUintProfit")]
         public static object GetUintProfit(byte[] assetId)
         {
             if (assetId.Length != 20 || !IsInWhiteList(assetId))
@@ -125,7 +126,7 @@ namespace flamingo_contract_staking
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
             if (IsPaused()) return false;
-            if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress) || amount <= 0) return false; //throw exception when release
+            if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress) || amount <= 0) return false;
             object[] Params = new object[]
             {
                 fromAddress,
@@ -134,7 +135,7 @@ namespace flamingo_contract_staking
             };
             BigInteger currentTimeStamp = GetCurrentTimeStamp();
             if (!CheckIfStakingStart(currentTimeStamp)) return false;
-            if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) return false; //throw exception when release
+            if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) throw new Exception(); //throw exception when release
             byte[] key = assetId.Concat(fromAddress);
             var result = Storage.Get(key);
             BigInteger currentProfit = 0;
@@ -172,7 +173,7 @@ namespace flamingo_contract_staking
                 amount
             };
             DyncCall nep5Contract = (DyncCall)assetId.ToDelegate();
-            if (!(bool)nep5Contract("transfer", Params)) return false; //throw exception when release
+            if (!(bool)nep5Contract("transfer", Params)) throw new Exception(); //throw exception when release
 
             else             
             {
@@ -186,7 +187,7 @@ namespace flamingo_contract_staking
         }
 
 #if DEBUG
-        [DisplayName("claimflm")]
+        [DisplayName("claimFLM")]
         public static bool ClaimFLM(byte[] fromAddress, byte[] assetId) => true;
 #endif
         private static bool ClaimFLM(byte[] fromAddress, byte[] assetId, byte[] callingScript)
@@ -210,12 +211,12 @@ namespace flamingo_contract_staking
             SaveUserStaking(fromAddress, stakingReocrd.amount, stakingReocrd.assetId, currentTimeStamp, 0, key);
             if (!MintFLM(fromAddress, profitAmount, callingScript))
             {
-                return false;
+                throw new Exception();
             }
             return true;
         }
 
-        [DisplayName("checkflm")]
+        [DisplayName("checkFLM")]
         public static BigInteger CheckFLM(byte[] fromAddress, byte[] assetId) 
         {
             byte[] key = assetId.Concat(fromAddress);
@@ -231,7 +232,7 @@ namespace flamingo_contract_staking
             return 0;
         }
 
-        [DisplayName("getstakingamount")]
+        [DisplayName("getStakingAmount")]
         public static BigInteger GetStakingAmount(byte[] fromAddress, byte[] assetId)
         {
             byte[] key = assetId.Concat(fromAddress);

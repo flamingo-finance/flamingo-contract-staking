@@ -96,7 +96,7 @@ namespace flamingo_contract_staking
             Storage.Put(_UintStackProfitKey, profit);
         }
 
-        [DisplayName("getcurrenttotalamount")]
+        [DisplayName("getCurrentTotalAmount")]
         public static BigInteger GetCurrentTotalAmount(byte[] assetId)
         {
             var Params = new object[] { ExecutionEngine.ExecutingScriptHash };

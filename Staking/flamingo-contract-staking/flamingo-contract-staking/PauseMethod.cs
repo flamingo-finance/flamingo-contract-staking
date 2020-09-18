@@ -22,7 +22,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("ispaused")]
+        [DisplayName("isPaused")]
         public static bool IsPaused()
         {
             var result = Storage.Get(pausePrefix);
