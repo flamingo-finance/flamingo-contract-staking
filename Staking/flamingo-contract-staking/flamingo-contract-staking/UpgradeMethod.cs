@@ -10,7 +10,7 @@ namespace flamingo_contract_staking
     public partial class StakingContract : SmartContract
     {
         private static readonly byte[] upgradeTimelockPrefix = new byte[] { 0x08, 0x01 };
-        [DisplayName("updatestart")]
+        [DisplayName("upgradeStart")]
         public static bool UpgradeStart() 
         {
             if (!Runtime.CheckWitness(GetOwner())) return false;
@@ -32,6 +32,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
+        [DisplayName("isUpgradeEnd")]
         public static bool UpgradeEnd() 
         {
             var upgradeTimelock = Storage.Get(upgradeTimelockPrefix);
