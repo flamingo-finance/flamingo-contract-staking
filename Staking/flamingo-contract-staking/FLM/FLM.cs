@@ -49,7 +49,7 @@ namespace flamingo_contract_staking
                 if (method == "allowance") return Allowance((byte[])args[0], (byte[])args[1]);
                 if (method == "transfer") return Transfer((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
                 if (method == "approve") return Approve((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
-                if (method == "transferFrom") return TransferFrom((byte[])args[0], (byte[])args[1], (byte[])args[2], (BigInteger)args[3], callingScript);
+                if (method == "transferFrom") return TransferFrom((byte[])args[0], (byte[])args[1], (byte[])args[2], (BigInteger)args[3]);
                 if (method == "addPika") return AddPika((byte[])args[0]);
                 if (method == "removePika") return RemovePika((byte[])args[0]);
                 if (method == "isPika") return IsPika((byte[])args[0]);
@@ -96,8 +96,7 @@ namespace flamingo_contract_staking
         public static bool Transfer(byte[] from, byte[] to, BigInteger amount) => true;
 #endif
         public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
-        {
-            // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
+        {           
             Assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
             Assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
             Assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
@@ -107,11 +106,6 @@ namespace flamingo_contract_staking
                 TransferEvent(from, to, amt);
                 return true;
             }
-            //if (!Blockchain.GetContract(to).IsPayable)
-            //{
-            //    return false;
-            //}
-
             BigInteger fromAmt = Storage.Get(BalancePrefix.Concat(from)).AsBigInteger();
 
             if (fromAmt < amt)
@@ -147,12 +141,11 @@ namespace flamingo_contract_staking
         }
 
         [DisplayName("transferFrom")]
-        public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt, byte[] callingScript)
+        public static bool TransferFrom(byte[] spender, byte[] owner, byte[] receiver, BigInteger amt)
         {
             Assert(spender.Length == 20 && owner.Length == 20 && receiver.Length == 20, "transferFrom: invalid spender or owner or receiver, spender-".AsByteArray().Concat(spender).Concat(", owner-".AsByteArray()).Concat(owner).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             Assert(amt >= 0, "transferFrom: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-            Assert(Runtime.CheckWitness(spender) || owner.Equals(callingScript), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());
-            //为什么有approve的模式下, 还需要owner.Equals(callingScript)
+            Assert(Runtime.CheckWitness(spender), "transferFrom: CheckWitness failed, spender-".AsByteArray().Concat(spender).AsString());            
             if (spender.Equals(owner) || owner.Equals(receiver))
             {
                 return true;

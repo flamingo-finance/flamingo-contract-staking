@@ -24,8 +24,9 @@ namespace flamingo_contract_staking
         public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, int cps, string name, string version, string author, string email, string description)
         {
             if (!Runtime.CheckWitness(GetOwner())) return false;
-            if (!UpgradeEnd()) return false;
             byte[] newContractHash = Hash160(newScript);
+            if (!Blockchain.GetContract(newContractHash).Equals(new byte[0])) return false;
+            if (!UpgradeEnd()) return false;
             if (!TransferAssetsToNewContract(newContractHash)) throw new Exception();
             Contract.Migrate(newScript, paramList, returnType, (ContractPropertyState)cps, name, version, author, email, description);
             Runtime.Notify(new object[] { "upgrade", ExecutionEngine.ExecutingScriptHash, newContractHash });
