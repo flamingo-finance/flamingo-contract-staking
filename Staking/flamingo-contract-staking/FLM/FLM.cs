@@ -96,8 +96,7 @@ namespace flamingo_contract_staking
         public static bool Transfer(byte[] from, byte[] to, BigInteger amount) => true;
 #endif
         public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
-        {
-            // strictly follow the protocol https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki#transfer
+        {           
             Assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
             Assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
             Assert(amt >= 0, "transfer: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
@@ -106,10 +105,6 @@ namespace flamingo_contract_staking
             {
                 TransferEvent(from, to, amt);
                 return true;
-            }
-            if (!Blockchain.GetContract(to).IsPayable)
-            {
-                return false;
             }
             BigInteger fromAmt = Storage.Get(BalancePrefix.Concat(from)).AsBigInteger();
 
