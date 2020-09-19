@@ -33,8 +33,7 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        [DisplayName("isUpgradeEnd")]
-        public static bool UpgradeEnd() 
+        private static bool UpgradeEnd() 
         {
             var upgradeTimelock = Storage.Get(upgradeTimelockPrefix);
             if (upgradeTimelock.Length == 0) return false;

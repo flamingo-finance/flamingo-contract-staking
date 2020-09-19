@@ -117,11 +117,7 @@ namespace flamingo_contract_staking
                 else if (method == "getOwner")
                 {
                     return GetOwner();
-                }
-                else if (method == "isUpgradeEnd")
-                {
-                    return UpgradeEnd();
-                }                
+                }         
                 else if (method == "upgrade")
                 {
                     return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
