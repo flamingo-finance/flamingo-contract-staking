@@ -12,7 +12,7 @@ namespace flamingo_contract_staking
     public class FLM : SmartContract
     {
         // TODO: replace Pika with authorized account address
-        private static readonly byte[] Pika = "AQzRMe3zyGS8W177xLJfewRRQZY2kddMun".ToScriptHash();
+        private static readonly byte[] Pika = "Ad14DmqHDc9EzucwZ4CfVxwBsGGD3w25Fn".ToScriptHash();
         private static readonly byte[] SupplyKey = "sk".AsByteArray();
         private static readonly byte[] PikaCountKey = "pck".AsByteArray();
 
@@ -246,8 +246,8 @@ namespace flamingo_contract_staking
             if (!condition)
             {
                 // TODO: uncomment next line on mainnet
-                //throw new InvalidOperationException("transfer: from equals to address.");
                 Runtime.Notify(Symbol().AsByteArray().Concat(msg.AsByteArray()).AsString());
+                throw new InvalidOperationException(msg);
             }
         }
 

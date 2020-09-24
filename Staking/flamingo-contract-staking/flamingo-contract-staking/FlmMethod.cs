@@ -29,7 +29,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("setFlmAddress")]
+        [DisplayName("setFLMAddress")]
         public static bool SetFlmAddress(byte[] flmScriptHash, byte[] adminHash)
         {
             if (Runtime.CheckWitness(adminHash) && IsAdmin(adminHash) && flmScriptHash.Length == 20)
@@ -43,7 +43,7 @@ namespace flamingo_contract_staking
             }
         }
 
-        [DisplayName("getFlmAddress")]
+        [DisplayName("getFLMAddress")]
         public static byte[] GetFlmAddress()       
         {
             return Storage.Get(_flmPrefix);

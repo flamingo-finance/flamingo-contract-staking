@@ -11,10 +11,10 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-        //private static readonly uint StartStakingTimeStamp = 1600963200;
-        //private static readonly uint StartClaimTimeStamp = 1601481600;
-        private static readonly uint StartStakingTimeStamp = 160096320;
-        private static readonly uint StartClaimTimeStamp = 160148160;
+        //private static readonly uint StartStakingTimeStamp = 1601038800;
+        //private static readonly uint StartClaimTimeStamp = 1601298000;
+        private static readonly uint StartStakingTimeStamp = 1600941600;
+        private static readonly uint StartClaimTimeStamp = 1600945200;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {
@@ -45,7 +45,7 @@ namespace flamingo_contract_staking
                 {
                     return RemoveAdmin((byte[])args[0]);
                 }
-                else if (method == "setFlmAddress")
+                else if (method == "setFLMAddress")
                 {
                     return SetFlmAddress((byte[])args[0], (byte[])args[1]);
                 }
@@ -70,7 +70,7 @@ namespace flamingo_contract_staking
                     return UpgradeStart();
                 }
 
-                else if (method == "getFlmAddress")
+                else if (method == "getFLMAddress")
                 {
                     return GetFlmAddress();
                 }
