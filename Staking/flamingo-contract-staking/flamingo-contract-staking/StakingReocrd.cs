@@ -11,10 +11,8 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-        //private static readonly uint StartStakingTimeStamp = 1601038800;
-        //private static readonly uint StartClaimTimeStamp = 1601298000;
-        private static readonly uint StartStakingTimeStamp = 1600941600;
-        private static readonly uint StartClaimTimeStamp = 1600945200;
+        private static readonly uint StartStakingTimeStamp = 1601038800;
+        private static readonly uint StartClaimTimeStamp = 1601269200;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
         {

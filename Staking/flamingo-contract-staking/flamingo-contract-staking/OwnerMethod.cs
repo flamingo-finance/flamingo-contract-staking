@@ -6,7 +6,7 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static readonly byte[] InitialOwnerScriptHash = "Ad14DmqHDc9EzucwZ4CfVxwBsGGD3w25Fn".ToScriptHash();
+        private static readonly byte[] InitialOwnerScriptHash = "Aa3muKgXbUu2458T3vyTpcQStPtGmiY7Qc".ToScriptHash();
         private static readonly byte[] adminPrefix = new byte[] { 0x03, 0x01 };
         private static readonly byte[] OwnerPrefix = new byte[] { 0x03, 0x02 };
 
