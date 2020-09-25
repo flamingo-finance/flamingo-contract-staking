@@ -12,7 +12,7 @@ namespace flamingo_contract_staking
     public class FLM : SmartContract
     {
         // TODO: replace Pika with authorized account address
-        private static readonly byte[] Pika = "Ad14DmqHDc9EzucwZ4CfVxwBsGGD3w25Fn".ToScriptHash();
+        private static readonly byte[] Pika = "AeazQGf3H3RVuKjFjU4aMPeixShVvbT41f".ToScriptHash();
         private static readonly byte[] SupplyKey = "sk".AsByteArray();
         private static readonly byte[] PikaCountKey = "pck".AsByteArray();
 
@@ -55,6 +55,7 @@ namespace flamingo_contract_staking
                 if (method == "isPika") return IsPika((byte[])args[0]);
                 if (method == "pikaCount") return PikaCount();
                 if (method == "mint") return Mint((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
+                if (method == "upgrade") return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
             }
             throw new InvalidOperationException("Invalid method: ".AsByteArray().Concat(method.AsByteArray()).AsString());
         }
@@ -95,7 +96,7 @@ namespace flamingo_contract_staking
         [DisplayName("transfer")] //Only for ABI file
         public static bool Transfer(byte[] from, byte[] to, BigInteger amount) => true;
 #endif
-        public static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
+        private static bool Transfer(byte[] from, byte[] to, BigInteger amt, byte[] callingScript)
         {           
             Assert(from.Length == 20 && to.Length == 20 , "transfer: invalid from or to, from-".AsByteArray().Concat(from).Concat(" and to-".AsByteArray()).Concat(to).AsString());
             Assert(Runtime.CheckWitness(from) || from.Equals(callingScript), "transfer: CheckWitness failed, from-".AsByteArray().Concat(from).AsString());
@@ -225,6 +226,18 @@ namespace flamingo_contract_staking
             Storage.Delete(PikaPrefix.Concat(pika));
             Storage.Put(PikaCountKey, Storage.Get(PikaCountKey).AsBigInteger() - 1);
             RemovePikaEvent(pika);
+            return true;
+        }
+
+        [DisplayName("upgrade")]
+        public static bool Upgrade(byte[] newScript, byte[] paramList, byte returnType, int cps, string name, string version, string author, string email, string description)
+        {
+            Assert(Runtime.CheckWitness(Pika), "upgrade: Only allowed to be called by owner.");
+            byte[] newContractHash = Hash160(newScript);
+            Assert(Blockchain.GetContract(newContractHash).Serialize().Equals(new byte[] { 0x00, 0x00 }), "upgrade: The contract already exists");
+
+            Contract.Migrate(newScript, paramList, returnType, (ContractPropertyState)cps, name, version, author, email, description);
+            Runtime.Notify("Contract upgraded", ExecutionEngine.ExecutingScriptHash, newContractHash);
             return true;
         }
 
