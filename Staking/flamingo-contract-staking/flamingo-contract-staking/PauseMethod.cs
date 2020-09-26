@@ -6,13 +6,17 @@ namespace flamingo_contract_staking
 {
     public partial class StakingContract : SmartContract
     {
-        private static readonly byte[] pausePrefix = new byte[] { 0x09, 0x01 };
+        private static readonly byte[] pauseStakingPrefix = new byte[] { 0x09, 0x01 };
+        private static readonly byte[] unpauseStakingPrefix = new byte[] { 0x09, 0x02 };
+        private static readonly byte[] pausePrefix = new byte[] { 0x09, 0x03 };
 
         [DisplayName("pause")]
         public static bool Pause(byte[] adminAddress) 
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
             {
+                PauseStaking(adminAddress);
+                PauseRefund(adminAddress);
                 Storage.Put(pausePrefix, new byte[] { 0x01 });
                 return true;
             }
@@ -30,12 +34,66 @@ namespace flamingo_contract_staking
             return false;
         }
 
+        public static bool PauseStaking(byte[] adminAddress) 
+        {
+            if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
+            {
+                Storage.Put(pauseStakingPrefix, new byte[] { 0x01 });
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool unpauseStaking(byte[] adminAddress) 
+        {
+            if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
+            {
+                Storage.Put(pauseStakingPrefix, new byte[0]);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool PauseRefund(byte[] adminAddress)
+        {
+            if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
+            {
+                Storage.Put(pauseStakingPrefix, new byte[] { 0x01 });
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool unpauseRefund(byte[] adminAddress)
+        {
+            if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
+            {
+                Storage.Put(pauseStakingPrefix, new byte[0]);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         [DisplayName("unpause")]
         public static bool Unpause(byte[] adminAddress) 
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
             {
-                Storage.Put(pausePrefix, new byte[0]);
+                unpauseStaking(adminAddress);
+                unpauseRefund(adminAddress);
+                Storage.Put(pausePrefix, new byte[0] );
                 return true;
             }
             else

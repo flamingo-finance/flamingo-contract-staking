@@ -108,14 +108,30 @@ namespace flamingo_contract_staking
                 {
                     return Unpause((byte[])args[0]);
                 }
-                else if (method == "isPaused") 
+                else if (method == "pauseStaking")
+                {
+                    return PauseStaking((byte[])args[0]);
+                }
+                else if (method == "pauseRefund")
+                {
+                    return PauseRefund((byte[])args[0]);
+                }
+                else if (method == "unpauseStaking")
+                {
+                    return unpauseStaking((byte[])args[0]);
+                }
+                else if (method == "unpauseRefund") 
+                {
+                    return unpauseRefund((byte[])args[0]);
+                }
+                else if (method == "isPaused")
                 {
                     return IsPaused();
                 }
                 else if (method == "getOwner")
                 {
                     return GetOwner();
-                }         
+                }
                 else if (method == "upgrade")
                 {
                     return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
