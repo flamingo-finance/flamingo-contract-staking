@@ -34,6 +34,7 @@ namespace flamingo_contract_staking
             return false;
         }
 
+        [DisplayName("pauseStaking")]
         public static bool PauseStaking(byte[] adminAddress) 
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
@@ -54,6 +55,7 @@ namespace flamingo_contract_staking
             return false;
         }
 
+        [DisplayName("unpauseStaking")]
         public static bool unpauseStaking(byte[] adminAddress) 
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
@@ -67,6 +69,7 @@ namespace flamingo_contract_staking
             }
         }
 
+        [DisplayName("pauseRefund")]
         public static bool PauseRefund(byte[] adminAddress)
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
@@ -80,6 +83,7 @@ namespace flamingo_contract_staking
             }
         }
 
+        [DisplayName("unpauseRefund")]
         public static bool unpauseRefund(byte[] adminAddress)
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
