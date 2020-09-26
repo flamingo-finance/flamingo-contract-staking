@@ -20,6 +20,8 @@ namespace flamingo_contract_staking
         private static readonly byte[] PikaPrefix = new byte[] { 0x01, 0x03 };
 
         private static readonly byte[] recoverMintedPrefix = new byte[] { 0x02, 0x01 };
+        private static readonly BigInteger total_amount = new BigInteger("00000040eaed7446d09c2c9f0c".HexToBytes());
+
 
         [DisplayName("transfer")]
         public static event Action<byte[], byte[], BigInteger> TransferEvent;
@@ -194,7 +196,7 @@ namespace flamingo_contract_staking
         [DisplayName("mint")]
         public static bool Mint(byte[] pika, byte[] receiver, BigInteger amount, byte[] callingScript)
         {
-            amount = amount / 100000000000000;
+            amount = amount / total_amount;
             Assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             Assert(amount > 0, "mint: invalid amount-".AsByteArray().Concat(amount.ToByteArray()).AsString());
             Assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
