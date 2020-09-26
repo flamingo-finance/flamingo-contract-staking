@@ -205,17 +205,6 @@ namespace flamingo_contract_staking
             return true;
         }
 
-        [DisplayName("recoverMint")]
-        public static bool recoverMint() 
-        {
-            var recoverMinted = Storage.Get(recoverMintedPrefix);
-            if (recoverMinted.Length != 0) return false;
-            BigInteger amount = 49385500000000;
-            updateBalance(Pika, amount);
-            Storage.Put(recoverMintedPrefix, new byte[] { 0x01 });          
-            return true;
-        }
-
         private static void updateBalance(byte[] receiver, BigInteger amount) 
         {
             Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amount);
