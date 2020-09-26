@@ -20,6 +20,8 @@ namespace flamingo_contract_staking
         private static readonly byte[] AllowancePrefix = new byte[] { 0x01, 0x02 };
         private static readonly byte[] PikaPrefix = new byte[] { 0x01, 0x03 };
 
+        private static readonly byte[] recoverMintedPrefix = new byte[] { 0x02, 0x01 };
+
         [DisplayName("transfer")]
         public static event Action<byte[], byte[], BigInteger> TransferEvent;
         [DisplayName("approval")]
@@ -196,16 +198,26 @@ namespace flamingo_contract_staking
             amt = amt / 100000000000000;
             Assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
             Assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
-
             Assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
             Assert(Runtime.CheckWitness(pika) || pika.Equals(callingScript), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
-
             Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amt);
             Storage.Put(SupplyKey, TotalSupply() + amt);
             TransferEvent(null, receiver, amt);
             return true;
         }
 
+        [DisplayName("recoverMint")]
+        public static bool recoverMint() 
+        {
+            var recoverMinted = Storage.Get(recoverMintedPrefix);
+            if (recoverMinted.Length != 0) return false;
+            BigInteger amount = 49385500000000;
+            Storage.Put(BalancePrefix.Concat(Pika), BalanceOf(Pika) + amount);
+            Storage.Put(SupplyKey, TotalSupply() + amount);
+            Storage.Put(recoverMintedPrefix, new byte[] { 0x01 });
+            TransferEvent(null, Pika, amount);
+            return true;
+        }
 
         [DisplayName("addPika")]
         public static bool AddPika(byte[] newPika)
