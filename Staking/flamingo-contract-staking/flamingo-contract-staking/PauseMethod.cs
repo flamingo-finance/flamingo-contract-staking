@@ -7,7 +7,7 @@ namespace flamingo_contract_staking
     public partial class StakingContract : SmartContract
     {
         private static readonly byte[] pauseStakingPrefix = new byte[] { 0x09, 0x01 };
-        private static readonly byte[] unpauseStakingPrefix = new byte[] { 0x09, 0x02 };
+        private static readonly byte[] pauseRefundPrefix = new byte[] { 0x09, 0x02 };
         private static readonly byte[] pausePrefix = new byte[] { 0x09, 0x03 };
 
         [DisplayName("pause")]
@@ -47,6 +47,13 @@ namespace flamingo_contract_staking
             }
         }
 
+        public static bool IsStakingPaused()
+        {
+            var result = Storage.Get(pauseStakingPrefix);
+            if (result.Length != 0) return true;
+            return false;
+        }
+
         public static bool unpauseStaking(byte[] adminAddress) 
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
@@ -64,7 +71,7 @@ namespace flamingo_contract_staking
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
             {
-                Storage.Put(pauseStakingPrefix, new byte[] { 0x01 });
+                Storage.Put(pauseRefundPrefix, new byte[] { 0x01 });
                 return true;
             }
             else
@@ -77,13 +84,20 @@ namespace flamingo_contract_staking
         {
             if (Runtime.CheckWitness(adminAddress) && IsAdmin(adminAddress))
             {
-                Storage.Put(pauseStakingPrefix, new byte[0]);
+                Storage.Put(pauseRefundPrefix, new byte[0]);
                 return true;
             }
             else
             {
                 return false;
             }
+        }
+
+        public static bool IsRefundPaused()
+        {
+            var result = Storage.Get(pauseRefundPrefix);
+            if (result.Length != 0) return true;
+            return false;
         }
 
         [DisplayName("unpause")]

@@ -153,7 +153,7 @@ namespace flamingo_contract_staking
         [DisplayName("staking")]
         public static bool Staking(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
-            if (IsPaused()) return false;
+            if (IsStakingPaused()) return false;
             if (!IsInWhiteList(assetId) || assetId.Length != 20 || CheckWhetherSelf(fromAddress) || amount <= 0) return false;
             object[] Params = new object[]
             {
@@ -181,7 +181,7 @@ namespace flamingo_contract_staking
         [DisplayName("refund")]
         public static bool Refund(byte[] fromAddress, BigInteger amount, byte[] assetId) 
         {
-            if (IsPaused()) return false;
+            if (IsRefundPaused()) return false;
             //提现检查
             if (!Runtime.CheckWitness(fromAddress)) return false;
             BigInteger currentTimeStamp = GetCurrentTimeStamp();            
