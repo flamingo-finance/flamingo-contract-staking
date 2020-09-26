@@ -14,7 +14,6 @@ namespace flamingo_contract_staking
         // TODO: replace Pika with authorized account address
         private static readonly byte[] Pika = "AeazQGf3H3RVuKjFjU4aMPeixShVvbT41f".ToScriptHash();
         private static readonly byte[] SupplyKey = "sk".AsByteArray();
-        private static readonly byte[] PikaCountKey = "pck".AsByteArray();
 
         private static readonly byte[] BalancePrefix = new byte[] { 0x01, 0x01 };
         private static readonly byte[] AllowancePrefix = new byte[] { 0x01, 0x02 };
@@ -55,8 +54,8 @@ namespace flamingo_contract_staking
                 if (method == "addPika") return AddPika((byte[])args[0]);
                 if (method == "removePika") return RemovePika((byte[])args[0]);
                 if (method == "isPika") return IsPika((byte[])args[0]);
-                if (method == "pikaCount") return PikaCount();
                 if (method == "mint") return Mint((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
+                if (method == "recoverMint") return recoverMint();
                 if (method == "upgrade") return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
             }
             throw new InvalidOperationException("Invalid method: ".AsByteArray().Concat(method.AsByteArray()).AsString());
@@ -193,16 +192,14 @@ namespace flamingo_contract_staking
         }
 
         [DisplayName("mint")]
-        public static bool Mint(byte[] pika, byte[] receiver, BigInteger amt, byte[] callingScript)
+        public static bool Mint(byte[] pika, byte[] receiver, BigInteger amount, byte[] callingScript)
         {
-            amt = amt / 100000000000000;
+            amount = amount / 100000000000000;
             Assert(pika.Length == 20 && receiver.Length == 20, "mint: invalid pika or receiver, pika-".AsByteArray().Concat(pika).Concat(" and receiver-".AsByteArray()).Concat(receiver).AsString());
-            Assert(amt > 0, "mint: invalid amount-".AsByteArray().Concat(amt.ToByteArray()).AsString());
+            Assert(amount > 0, "mint: invalid amount-".AsByteArray().Concat(amount.ToByteArray()).AsString());
             Assert(IsPika(pika) || pika.Equals(Pika), "mint: pika-".AsByteArray().Concat(pika).Concat(" is not a real pika".AsByteArray()).AsString());
             Assert(Runtime.CheckWitness(pika) || pika.Equals(callingScript), "mint: CheckWitness failed, pika-".AsByteArray().Concat(pika).AsString());
-            Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amt);
-            Storage.Put(SupplyKey, TotalSupply() + amt);
-            TransferEvent(null, receiver, amt);
+            updateBalance(receiver, amount);
             return true;
         }
 
@@ -212,11 +209,16 @@ namespace flamingo_contract_staking
             var recoverMinted = Storage.Get(recoverMintedPrefix);
             if (recoverMinted.Length != 0) return false;
             BigInteger amount = 49385500000000;
-            Storage.Put(BalancePrefix.Concat(Pika), BalanceOf(Pika) + amount);
-            Storage.Put(SupplyKey, TotalSupply() + amount);
-            Storage.Put(recoverMintedPrefix, new byte[] { 0x01 });
-            TransferEvent(null, Pika, amount);
+            updateBalance(Pika, amount);
+            Storage.Put(recoverMintedPrefix, new byte[] { 0x01 });          
             return true;
+        }
+
+        private static void updateBalance(byte[] receiver, BigInteger amount) 
+        {
+            Storage.Put(BalancePrefix.Concat(receiver), BalanceOf(receiver) + amount);
+            Storage.Put(SupplyKey, TotalSupply() + amount);
+            TransferEvent(null, Pika, amount);
         }
 
         [DisplayName("addPika")]
@@ -225,7 +227,6 @@ namespace flamingo_contract_staking
             Assert(Runtime.CheckWitness(Pika) && !newPika.Equals(Pika), "addPika: CheckWitness failed, only first pika can add other pika");
             Assert(!IsPika(newPika), "addPika: newPika-".AsByteArray().Concat(newPika).Concat(" is already a pika".AsByteArray()).AsString());
             Storage.Put(PikaPrefix.Concat(newPika), 1);
-            Storage.Put(PikaCountKey, Storage.Get(PikaCountKey).AsBigInteger() + 1);
             AddPikaEvent(newPika);
             return true;
         }
@@ -236,7 +237,6 @@ namespace flamingo_contract_staking
             Assert(Runtime.CheckWitness(Pika) && !pika.Equals(Pika), "removePika: CheckWitness failed, only first pika can remove other pika");
             Assert(IsPika(pika), "removePika: pika-".AsByteArray().Concat(pika).Concat(" is NOT a pika".AsByteArray()).AsString());
             Storage.Delete(PikaPrefix.Concat(pika));
-            Storage.Put(PikaCountKey, Storage.Get(PikaCountKey).AsBigInteger() - 1);
             RemovePikaEvent(pika);
             return true;
         }
@@ -258,13 +258,6 @@ namespace flamingo_contract_staking
         {
             return Storage.Get(PikaPrefix.Concat(pika)).Length != 0 || pika.Equals(Pika);
         }
-
-        [DisplayName("pikaCount")]
-        public static BigInteger PikaCount()
-        {
-            return Storage.Get(PikaCountKey).AsBigInteger() + 1;
-        }
-
 
         private static void Assert(bool condition, string msg)
         {

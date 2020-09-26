@@ -11,7 +11,7 @@ namespace flamingo_contract_staking
     {
         private static readonly byte[] _currentRateTimeStampPrefix = new byte[] { 0x01, 0x01 };        
         private static readonly byte[] _currentUintStackProfitPrefix = new byte[] { 0x01, 0x02 };
-        private static readonly uint StartStakingTimeStamp = 1601038800;
+        private static readonly uint StartStakingTimeStamp = 1601114400;
         private static readonly uint StartClaimTimeStamp = 1601269200;
         delegate object DyncCall(string method, object[] args);
         public static object Main(string method, object[] args)
@@ -149,7 +149,7 @@ namespace flamingo_contract_staking
             if (!CheckIfStakingStart(currentTimeStamp)) return false;
             if (!(bool)((DyncCall)assetId.ToDelegate())("transfer", Params)) throw new Exception(); //throw exception when release
             byte[] key = assetId.Concat(fromAddress);
-            var result = Storage.Get(key);
+            byte[] result = Storage.Get(key);
             BigInteger currentProfit = 0;
             UpdateStackRecord(assetId, currentTimeStamp);
             if (result.Length != 0)
