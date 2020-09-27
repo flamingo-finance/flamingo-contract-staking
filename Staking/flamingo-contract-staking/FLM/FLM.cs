@@ -19,9 +19,7 @@ namespace flamingo_contract_staking
         private static readonly byte[] AllowancePrefix = new byte[] { 0x01, 0x02 };
         private static readonly byte[] PikaPrefix = new byte[] { 0x01, 0x03 };
 
-        private static readonly byte[] recoverMintedPrefix = new byte[] { 0x02, 0x01 };
         private static readonly BigInteger total_amount = new BigInteger("00000040eaed7446d09c2c9f0c".HexToBytes());
-
 
         [DisplayName("transfer")]
         public static event Action<byte[], byte[], BigInteger> TransferEvent;
@@ -31,8 +29,6 @@ namespace flamingo_contract_staking
         public static event Action<byte[]> AddPikaEvent;
         [DisplayName("removePika")]
         public static event Action<byte[]> RemovePikaEvent;
-
-
 
         public static object Main(string method, object[] args)
         {
@@ -57,7 +53,6 @@ namespace flamingo_contract_staking
                 if (method == "removePika") return RemovePika((byte[])args[0]);
                 if (method == "isPika") return IsPika((byte[])args[0]);
                 if (method == "mint") return Mint((byte[])args[0], (byte[])args[1], (BigInteger)args[2], callingScript);
-                if (method == "recoverMint") return recoverMint();
                 if (method == "upgrade") return Upgrade((byte[])args[0], (byte[])args[1], (byte)args[2], (int)args[3], (string)args[4], (string)args[5], (string)args[6], (string)args[7], (string)args[8]);
             }
             throw new InvalidOperationException("Invalid method: ".AsByteArray().Concat(method.AsByteArray()).AsString());
