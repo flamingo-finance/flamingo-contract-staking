@@ -8,7 +8,7 @@ Flamingo is an interoperable, full-stack decentralized finance protocol built on
 contract name | script hash
 ---|---
 Staking Contract | 0x4d92194e8d73980dadbadfc1993b2014c9fbd9da
-FLM Nep5 Token | 0x6951415aec9acdfd294d89ff5aad3557a996508c
+FLM Nep5 Token | 0x4d9eab13620fe3569ba3b0e56e2877739e4145e3
 
 ## Security
 Flamingo Staking Contract is audited by Peckshield. All the [auditing reports](https://github.com/flamingo-finance/flamingo-audit) are here.
